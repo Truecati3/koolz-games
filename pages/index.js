@@ -108,18 +108,23 @@ export default function Home() {
           left: 0;
           right: 0;
           bottom: 0;
-          background: rgba(0, 0, 0, 0.8);
+          background: rgba(0, 0, 0, 0.9);
           display: flex;
           justify-content: center;
           align-items: center;
           z-index: 10;
+          width: 100%;
+          height: 100%;
+          padding: 0;
+          margin: 0;
         }
 
         .game-iframe {
-          width: 80%;
-          height: 80%;
+          width: 100%;
+          height: 100%;
           border: none;
-          border-radius: 10px;
+          border-radius: 0;
+          max-width: 100%;
         }
 
         .close-btn {
