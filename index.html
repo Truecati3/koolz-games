@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Unblocked Games Hub</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Password Protected Content -->
+  <?php 
+    session_start();
+    if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
+      header('Location: login.php');
+      exit();
+    }
+  ?>
+
+  <div class="games-container">
+    <!-- Game Icons (example, add more) -->
+    <div class="game-icon" onclick="openGame('https://example.com/game1')">
+      <img src="games/game1-icon.png" alt="Game 1">
+      <p>Game 1</p>
+    </div>
+    <div class="game-icon" onclick="openGame('https://example.com/game2')">
+      <img src="games/game2-icon.png" alt="Game 2">
+      <p>Game 2</p>
+    </div>
+    <!-- Add more game icons here -->
+  </div>
+
+  <!-- Iframe Modal -->
+  <div id="gameModal" class="modal">
+    <button id="closeBtn" class="close-btn">X</button>
+    <iframe id="gameFrame" src="" frameborder="0"></iframe>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
