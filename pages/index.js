@@ -1,72 +1,23 @@
 import { useState } from "react";
 
 const games = [
-  {
-    name: "2048",
-    url: "/games/2048/index.html",
-    icon: "https://img.icons8.com/color/96/000000/2048.png",
-  },
-  {
-    name: "Snake",
-    url: "/games/snake/index.html",
-    icon: "https://img.icons8.com/color/96/000000/snake.png",
-  },
-  {
-    name: "Tetris",
-    url: "/games/tetris/index.html",
-    icon: "https://img.icons8.com/color/96/000000/tetris.png",
-  },
-  {
-    name: "Flappy Bird",
-    url: "/games/flappy/index.html",
-    icon: "https://img.icons8.com/color/96/000000/bird.png",
-  },
-  {
-    name: "Pac-Man",
-    url: "/games/pacman/index.html",
-    icon: "https://img.icons8.com/color/96/000000/pacman.png",
-  },
-  {
-    name: "Minesweeper",
-    url: "/games/minesweeper/index.html",
-    icon: "https://img.icons8.com/color/96/000000/minesweeper.png",
-  },
-  {
-    name: "Breakout",
-    url: "/games/breakout/index.html",
-    icon: "https://img.icons8.com/color/96/000000/breakout.png",
-  },
-];
-
+  { name: "2048", url: "/games/2048/index.html", icon: "https://img.icons8.com/color/96/000000/2048.png" },
+  { name: "Snake", url: "/games/snake/index.html", icon: "https://img.icons8.com/color/96/000000/snake.png" },
+  { name: "Tetris", url: "/games/tetris/index.html", icon: "https://img.icons8.com/color/96/000000/tetris.png" },
+  { name: "Flappy Bird", url: "/games/flappy/index.html", icon: "https://img.icons8.com/color/96/000000/bird.png" },
+  { name: "Pac-Man", url: "/games/pacman/index.html", icon: "https://img.icons8.com/color/96/000000/pacman.png" },
+  { name: "Minesweeper", url: "/games/minesweeper/index.html", icon: "https://img.icons8.com/color/96/000000/minesweeper.png" },
+  { name: "Breakout", url: "/games/breakout/index.html", icon: "https://img.icons8.com/color/96/000000/breakout.png" },
+].sort((a, b) => a.name.localeCompare(b.name)); // 🔤 Auto sort alphabetically
 
 export default function Home() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentGame, setCurrentGame] = useState("");
   const [password, setPassword] = useState("");
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [searchTerm, setSearchTerm] = useState(""); // 🔍 Search
 
-  // Handle password submission (secure: checks server API)
-  const handlePasswordSubmit = async (event) => {
-    event.preventDefault();
-    try {
-      const res = await fetch("/api/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ password }),
-      });
-
-      const data = await res.json();
-
-      if (data.success) {
-        setIsAuthenticated(true);
-      } else {
-        alert("Incorrect password. Please try again.");
-      }
-    } catch (error) {
-      console.error("Login error:", error);
-      alert("Something went wrong. Please try again.");
-    }
-  };
+  const correctPassword = "letmein";
 
   const openGame = (url) => {
     setCurrentGame(url);
@@ -77,6 +28,20 @@ export default function Home() {
     setIsModalOpen(false);
     setCurrentGame("");
   };
+
+  const handlePasswordSubmit = (event) => {
+    event.preventDefault();
+    if (password === correctPassword) {
+      setIsAuthenticated(true);
+    } else {
+      alert("Incorrect password. Please try again.");
+    }
+  };
+
+  // 🔍 filter games by search term
+  const filteredGames = games.filter((game) =>
+    game.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   return (
     <div className="container">
@@ -91,16 +56,24 @@ export default function Home() {
               placeholder="Password"
               className="password-input"
             />
-            <button type="submit" className="submit-btn">
-              Submit
-            </button>
+            <button type="submit" className="submit-btn">Submit</button>
           </form>
         </div>
       ) : (
         <div>
           <h1 className="title">Unblocked Games Hub</h1>
+
+          {/* 🔍 Search Bar */}
+          <input
+            type="text"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            placeholder="Search games..."
+            className="search-input"
+          />
+
           <div className="games-container">
-            {games.map((game) => (
+            {filteredGames.map((game) => (
               <div
                 className="game-icon"
                 key={game.name}
@@ -172,8 +145,19 @@ export default function Home() {
         .title {
           font-size: 36px;
           font-weight: bold;
-          margin-bottom: 40px;
+          margin-bottom: 20px;
           color: #f6b93b;
+        }
+
+        .search-input {
+          margin-bottom: 30px;
+          padding: 10px;
+          width: 60%;
+          font-size: 16px;
+          border-radius: 8px;
+          border: 1px solid #444;
+          background-color: #1e1e1e;
+          color: white;
         }
 
         .games-container {
