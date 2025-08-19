@@ -17,6 +17,10 @@ const games = [
 export default function Home() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentGame, setCurrentGame] = useState("");
+  const [password, setPassword] = useState("");
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  const correctPassword = "your_secret_password"; // Set your password here
 
   const openGame = (url) => {
     setCurrentGame(url);
@@ -28,26 +32,55 @@ export default function Home() {
     setCurrentGame("");
   };
 
+  const handlePasswordSubmit = (event) => {
+    event.preventDefault();
+    if (password === correctPassword) {
+      setIsAuthenticated(true);
+    } else {
+      alert("Incorrect password. Please try again.");
+    }
+  };
+
   return (
     <div className="container">
-      <h1 className="title">Unblocked Games Hub</h1>
-      <div className="games-container">
-        {games.map((game) => (
-          <div
-            className="game-icon"
-            key={game.name}
-            onClick={() => openGame(game.url)}
-          >
-            <img src={game.icon} alt={game.name} className="icon-img" />
-            <p className="game-name">{game.name}</p>
+      {!isAuthenticated ? (
+        <div className="password-screen">
+          <h2>Enter Password to Access Games</h2>
+          <form onSubmit={handlePasswordSubmit}>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Password"
+              className="password-input"
+            />
+            <button type="submit" className="submit-btn">
+              Submit
+            </button>
+          </form>
+        </div>
+      ) : (
+        <div>
+          <h1 className="title">Unblocked Games Hub</h1>
+          <div className="games-container">
+            {games.map((game) => (
+              <div
+                className="game-icon"
+                key={game.name}
+                onClick={() => openGame(game.url)}
+              >
+                <img src={game.icon} alt={game.name} className="icon-img" />
+                <p className="game-name">{game.name}</p>
+              </div>
+            ))}
           </div>
-        ))}
-      </div>
 
-      {isModalOpen && (
-        <div className="modal" onClick={closeModal}>
-          <iframe src={currentGame} className="game-iframe" />
-          <button onClick={closeModal} className="close-btn">X</button>
+          {isModalOpen && (
+            <div className="modal" onClick={closeModal}>
+              <iframe src={currentGame} className="game-iframe" />
+              <button onClick={closeModal} className="close-btn">X</button>
+            </div>
+          )}
         </div>
       )}
 
@@ -58,6 +91,45 @@ export default function Home() {
           text-align: center;
           padding: 20px;
           font-family: 'Arial', sans-serif;
+        }
+
+        .password-screen {
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+          align-items: center;
+          height: 100vh;
+        }
+
+        .password-screen h2 {
+          margin-bottom: 20px;
+          font-size: 24px;
+          color: #f6b93b;
+        }
+
+        .password-input {
+          padding: 10px;
+          font-size: 16px;
+          margin-bottom: 20px;
+          width: 200px;
+          border: 1px solid #ccc;
+          border-radius: 5px;
+          background-color: #2e2e2e;
+          color: white;
+        }
+
+        .submit-btn {
+          padding: 10px 20px;
+          font-size: 18px;
+          background-color: #f6b93b;
+          color: white;
+          border: none;
+          border-radius: 5px;
+          cursor: pointer;
+        }
+
+        .submit-btn:hover {
+          background-color: #f39c12;
         }
 
         .title {
