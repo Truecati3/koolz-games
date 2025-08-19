@@ -4,12 +4,12 @@ const games = [
   {
     name: "Game 1",
     url: "https://newgame1url.com", // Game URL
-    icon: "/games/game1-icon.png", // Game icon
+    icon: "https://example.com/images/game1-icon.png", // URL to an external image
   },
   {
     name: "Game 2",
     url: "https://newgame2url.com",
-    icon: "/games/game2-icon.png",
+    icon: "https://example.com/images/game2-icon.png", // URL to an external image
   },
   // Add more games here
 ];
