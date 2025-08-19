@@ -19,7 +19,29 @@ export default function Home() {
   const [currentGame, setCurrentGame] = useState("");
   const [password, setPassword] = useState("");
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [error, setError] = useState("");
+
+  // Handle password submission (secure: checks server API)
+  const handlePasswordSubmit = async (event) => {
+    event.preventDefault();
+    try {
+      const res = await fetch("/api/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password }),
+      });
+
+      const data = await res.json();
+
+      if (data.success) {
+        setIsAuthenticated(true);
+      } else {
+        alert("Incorrect password. Please try again.");
+      }
+    } catch (error) {
+      console.error("Login error:", error);
+      alert("Something went wrong. Please try again.");
+    }
+  };
 
   const openGame = (url) => {
     setCurrentGame(url);
@@ -29,27 +51,6 @@ export default function Home() {
   const closeModal = () => {
     setIsModalOpen(false);
     setCurrentGame("");
-  };
-
-  // 🔐 Secure login using API route
-  const handlePasswordSubmit = async (event) => {
-    event.preventDefault();
-
-    const res = await fetch("/api/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ password }),
-    });
-
-    const data = await res.json();
-
-    if (data.success) {
-      setIsAuthenticated(true);
-      setError("");
-    } else {
-      setError("Incorrect password. Please try again.");
-      setPassword("");
-    }
   };
 
   return (
@@ -69,7 +70,6 @@ export default function Home() {
               Submit
             </button>
           </form>
-          {error && <p style={{ color: "red", marginTop: "10px" }}>{error}</p>}
         </div>
       ) : (
         <div>
@@ -104,6 +104,7 @@ export default function Home() {
           padding: 20px;
           font-family: 'Arial', sans-serif;
         }
+
         .password-screen {
           display: flex;
           flex-direction: column;
@@ -111,11 +112,13 @@ export default function Home() {
           align-items: center;
           height: 100vh;
         }
+
         .password-screen h2 {
           margin-bottom: 20px;
           font-size: 24px;
           color: #f6b93b;
         }
+
         .password-input {
           padding: 10px;
           font-size: 16px;
@@ -126,6 +129,7 @@ export default function Home() {
           background-color: #2e2e2e;
           color: white;
         }
+
         .submit-btn {
           padding: 10px 20px;
           font-size: 18px;
@@ -135,7 +139,97 @@ export default function Home() {
           border-radius: 5px;
           cursor: pointer;
         }
+
         .submit-btn:hover {
           background-color: #f39c12;
         }
-        .t
+
+        .title {
+          font-size: 36px;
+          font-weight: bold;
+          margin-bottom: 40px;
+          color: #f6b93b;
+        }
+
+        .games-container {
+          display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+          gap: 20px;
+          justify-items: center;
+        }
+
+        .game-icon {
+          cursor: pointer;
+          width: 150px;
+          text-align: center;
+          border-radius: 12px;
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+          transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .game-icon:hover {
+          transform: translateY(-5px);
+          box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .icon-img {
+          width: 100%;
+          height: 100px;
+          object-fit: cover;
+          border-radius: 10px;
+        }
+
+        .game-name {
+          margin-top: 10px;
+          font-size: 16px;
+          color: #ddd;
+          font-weight: 500;
+        }
+
+        .modal {
+          position: fixed;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background: rgba(0, 0, 0, 0.9);
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          z-index: 10;
+          width: 100%;
+          height: 100%;
+          padding: 0;
+          margin: 0;
+        }
+
+        .game-iframe {
+          width: 100%;
+          height: 100%;
+          border: none;
+          border-radius: 0;
+          max-width: 100%;
+        }
+
+        .close-btn {
+          position: absolute;
+          top: 20px;
+          right: 20px;
+          background-color: #f6b93b;
+          color: white;
+          font-size: 24px;
+          font-weight: bold;
+          border: none;
+          border-radius: 50%;
+          width: 40px;
+          height: 40px;
+          cursor: pointer;
+        }
+
+        .close-btn:hover {
+          background-color: #f39c12;
+        }
+      `}</style>
+    </div>
+  );
+}
