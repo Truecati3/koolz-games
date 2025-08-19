@@ -2,8 +2,8 @@
 const games = [
   {
     name: "Game 1",
-    url: "https://newgame1url.com", // Game URL
-    icon: "games/new-game1-icon.png" // Icon image
+    url: "https://1v1.lol/", // Game URL
+    icon: "https://play.google.com/store/apps/details?id=lol.onevone&hl=en_NZ" // Icon image
   },
   {
     name: "Game 2",
