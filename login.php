@@ -1,8 +1,10 @@
 <?php
 session_start();
+
+// If the user is already logged in, redirect them to the main page
 if (isset($_SESSION['logged_in']) && $_SESSION['logged_in'] === true) {
-  header('Location: index.html');
-  exit();
+    header('Location: index.php');
+    exit();
 }
 ?>
 
@@ -21,6 +23,13 @@ if (isset($_SESSION['logged_in']) && $_SESSION['logged_in'] === true) {
     <input type="password" name="password" placeholder="Enter password" required>
     <button type="submit">Login</button>
   </form>
+
+  <?php
+  // Show error message if password is incorrect
+  if (isset($_GET['error']) && $_GET['error'] === 'true') {
+    echo "<p style='color: red;'>Incorrect password. Please try again.</p>";
+  }
+  ?>
 
 </body>
 </html>
