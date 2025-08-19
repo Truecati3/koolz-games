@@ -20,7 +20,7 @@ export default function Home() {
   const [password, setPassword] = useState("");
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
-  const correctPassword = "your_secret_password"; // Set your password here
+  const correctPassword = "nathan"; // Set your password here
 
   const openGame = (url) => {
     setCurrentGame(url);
