@@ -1,3 +1,13 @@
+<?php
+session_start();
+
+// Redirect to login if not logged in
+if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
+    header('Location: login.php');
+    exit();
+}
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -8,13 +18,8 @@
 </head>
 <body>
 
-  <?php 
-    session_start();
-    if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
-      header('Location: login.php');
-      exit();
-    }
-  ?>
+  <!-- Logout link -->
+  <a href="logout.php" style="position: absolute; top: 10px; right: 10px; color: white;">Logout</a>
 
   <div class="games-container" id="gamesContainer">
     <!-- Games will be dynamically inserted here by JavaScript -->
