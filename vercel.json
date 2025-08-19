@@ -1,13 +1,19 @@
 {
   "version": 2,
+  "builds": [
+    {
+      "src": "package.json",
+      "use": "@vercel/next"
+    }
+  ],
   "routes": [
     {
       "src": "/login",
-      "dest": "/login.js"
+      "dest": "/login"
     },
     {
       "src": "/",
-      "dest": "/index.js"
+      "dest": "/index"
     }
   ]
 }
