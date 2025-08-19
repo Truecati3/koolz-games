@@ -8,14 +8,14 @@ const games = [
   { name: "Pac-Man", url: "/games/pacman/index.html", icon: "https://img.icons8.com/color/96/000000/pacman.png" },
   { name: "Minesweeper", url: "/games/minesweeper/index.html", icon: "https://img.icons8.com/color/96/000000/minesweeper.png" },
   { name: "Breakout", url: "/games/breakout/index.html", icon: "https://img.icons8.com/color/96/000000/breakout.png" },
-].sort((a, b) => a.name.localeCompare(b.name)); // 🔤 Auto sort alphabetically
+].sort((a, b) => a.name.localeCompare(b.name));
 
 export default function Home() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentGame, setCurrentGame] = useState("");
   const [password, setPassword] = useState("");
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [searchTerm, setSearchTerm] = useState(""); // 🔍 Search
+  const [searchTerm, setSearchTerm] = useState("");
 
   const correctPassword = "letmein";
 
@@ -38,7 +38,8 @@ export default function Home() {
     }
   };
 
-  // 🔍 filter games by search term
+  const clearSearch = () => setSearchTerm("");
+
   const filteredGames = games.filter((game) =>
     game.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -63,27 +64,37 @@ export default function Home() {
         <div>
           <h1 className="title">Unblocked Games Hub</h1>
 
-          {/* 🔍 Search Bar */}
-          <input
-            type="text"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Search games..."
-            className="search-input"
-          />
-
-          <div className="games-container">
-            {filteredGames.map((game) => (
-              <div
-                className="game-icon"
-                key={game.name}
-                onClick={() => openGame(game.url)}
-              >
-                <img src={game.icon} alt={game.name} className="icon-img" />
-                <p className="game-name">{game.name}</p>
-              </div>
-            ))}
+          {/* 🔍 Search Bar with Clear Button */}
+          <div className="search-bar">
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="Search games..."
+              className="search-input"
+            />
+            {searchTerm && (
+              <button className="clear-btn" onClick={clearSearch}>Clear</button>
+            )}
           </div>
+
+          {/* If no games found */}
+          {filteredGames.length === 0 ? (
+            <p className="no-results">No games found.</p>
+          ) : (
+            <div className="games-container">
+              {filteredGames.map((game) => (
+                <div
+                  className="game-icon"
+                  key={game.name}
+                  onClick={() => openGame(game.url)}
+                >
+                  <img src={game.icon} alt={game.name} className="icon-img" />
+                  <p className="game-name">{game.name}</p>
+                </div>
+              ))}
+            </div>
+          )}
 
           {isModalOpen && (
             <div className="modal" onClick={closeModal}>
@@ -149,8 +160,15 @@ export default function Home() {
           color: #f6b93b;
         }
 
-        .search-input {
+        .search-bar {
+          display: flex;
+          justify-content: center;
+          align-items: center;
           margin-bottom: 30px;
+          gap: 10px;
+        }
+
+        .search-input {
           padding: 10px;
           width: 60%;
           font-size: 16px;
@@ -158,6 +176,26 @@ export default function Home() {
           border: 1px solid #444;
           background-color: #1e1e1e;
           color: white;
+        }
+
+        .clear-btn {
+          padding: 10px 15px;
+          font-size: 14px;
+          background-color: #e74c3c;
+          color: white;
+          border: none;
+          border-radius: 6px;
+          cursor: pointer;
+        }
+
+        .clear-btn:hover {
+          background-color: #c0392b;
+        }
+
+        .no-results {
+          font-size: 18px;
+          color: #aaa;
+          margin-top: 20px;
         }
 
         .games-container {
