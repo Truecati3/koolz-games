@@ -2,7 +2,7 @@ import { useState } from "react";
 
 const games = [
   {
-    name: "Game 1",
+    name: "1v1.lol",
     url: "https://1v1.lol/", // Game URL
     icon: "https://img.utdstc.com/icon/983/22a/98322a3b2be892eed31589906ffd949b68bcccc9a21ba562987965b5ec6bc6de:200", // URL to an external image
   },
