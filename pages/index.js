@@ -3,8 +3,8 @@ import { useState } from "react";
 const games = [
   {
     name: "Game 1",
-    url: "https://newgame1url.com", // Game URL
-    icon: "https://example.com/images/game1-icon.png", // URL to an external image
+    url: "https://1v1.lol/", // Game URL
+    icon: "https://img.utdstc.com/icon/983/22a/98322a3b2be892eed31589906ffd949b68bcccc9a21ba562987965b5ec6bc6de:200", // URL to an external image
   },
   {
     name: "Game 2",
