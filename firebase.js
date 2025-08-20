@@ -10,16 +10,17 @@ const firebaseConfig = {
   storageBucket: "koolz-games.firebasestorage.app",
   messagingSenderId: "621336210290",
   appId: "1:621336210290:web:4fcb1cbdf24dc896994beb",
-  measurementId: "G-1KDW80FSZ6",
+  measurementId: "G-1KDW80FSZ6"
 };
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
-export const auth = getAuth(app);
+const auth = getAuth(app);
 
-// Analytics only works in browser (not SSR)
+// Analytics only works in browser (not on server)
 let analytics;
 if (typeof window !== "undefined") {
   analytics = getAnalytics(app);
 }
-export { analytics };
+
+export { app, auth, analytics };
