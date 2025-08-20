@@ -1,30 +1,52 @@
 // context/AuthContext.js
 import { createContext, useContext, useEffect, useState } from "react";
-import { onAuthStateChanged } from "firebase/auth";
+import { onAuthStateChanged, signOut } from "firebase/auth";
 import { auth } from "../firebase";
+import { doc, getDoc } from "firebase/firestore";
+import { db } from "../firebase";
 
 const AuthContext = createContext();
 
-// Wraps entire app with AuthProvider
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [role, setRole] = useState("guest"); // "admin" | "user" | "guest"
   const [loading, setLoading] = useState(true);
+  const [banned, setBanned] = useState(false);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
+        const userRef = doc(db, "users", firebaseUser.uid);
+        const snap = await getDoc(userRef);
+
+        if (snap.exists()) {
+          const userData = snap.data();
+
+          if (userData.banned) {
+            // 🚫 User is banned → sign them out
+            await signOut(auth);
+            setUser(null);
+            setRole("guest");
+            setBanned(true);
+            setLoading(false);
+            return;
+          }
+        }
+
+        // ✅ User allowed
         setUser(firebaseUser);
 
-        // ✅ Check if logged-in user is admin
         if (firebaseUser.email === "snoxnukethe@gmail.com") {
           setRole("admin");
         } else {
           setRole("user");
         }
+
+        setBanned(false);
       } else {
         setUser(null);
         setRole("guest");
+        setBanned(false);
       }
       setLoading(false);
     });
@@ -33,13 +55,12 @@ export function AuthProvider({ children }) {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, role, loading }}>
+    <AuthContext.Provider value={{ user, role, loading, banned }}>
       {children}
     </AuthContext.Provider>
   );
 }
 
-// Hook to use anywhere
 export function useAuth() {
   return useContext(AuthContext);
 }
