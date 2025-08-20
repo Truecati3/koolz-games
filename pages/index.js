@@ -1,3 +1,18 @@
+import { useAuth } from "../context/AuthContext";
+
+export default function HomePage() {
+  const { banned } = useAuth();
+
+  if (banned) {
+    return (
+      <div style={{ padding: "20px", color: "red" }}>
+        🚫 your banned loser. Contact support if you think this is a mistake.
+      </div>
+    );
+  }
+
+  return <div>...rest of your app...</div>;
+}
 // pages/index.js
 import { useEffect, useState } from "react";
 import { auth } from "../firebase";
