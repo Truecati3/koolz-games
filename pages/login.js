@@ -1,81 +1,65 @@
 // pages/login.js
-import { doc, getDoc } from "firebase/firestore";
-import { db } from "../firebase";
-import { signUp } from "../lib/auth";
 import { useState } from "react";
-import { auth } from "../firebase";
-import {
-  createUserWithEmailAndPassword,
-  signInWithEmailAndPassword,
-  signOut,
-} from "firebase/auth";
+import { useRouter } from "next/router";
+import { auth, db } from "../firebase";
+import { signInWithEmailAndPassword } from "firebase/auth";
+import { doc, getDoc } from "firebase/firestore";
 
-export default function LoginPage() {
+export default function Login({ setUser, setRole }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [user, setUser] = useState(null);
   const [error, setError] = useState("");
-
-  const handleSignup = async () => {
-    try {
-      const res = await await signUp(email, password);
-
-    } catch (err) {
-      setError(err.message);
-    }
-  };
+  const router = useRouter();
 
   const handleLogin = async () => {
     try {
-      const res = await const userDoc = await getDoc(doc(db, "users", user.user.uid));
-if (userDoc.exists()) {
-  const userData = userDoc.data();
-  console.log("User role:", userData.role);
+      // Sign in with Firebase Authentication
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
 
-  if (userData.role === "admin") {
-    // show admin dashboard
-  } else {
-    // regular user dashboard
-  }
-}
+      // Fetch user role from Firestore
+      const userDoc = await getDoc(doc(db, "users", user.uid));
+      if (userDoc.exists()) {
+        const userData = userDoc.data();
+        console.log("User role:", userData.role);
+        setRole(userData.role || "user"); // fallback to "user"
+      } else {
+        console.log("No role found, defaulting to user.");
+        setRole("user");
+      }
 
+      setUser(user);
+      router.push("/"); // redirect to homepage after login
     } catch (err) {
-      setError(err.message);
+      console.error("Login failed:", err.message);
+      setError("Invalid email or password.");
     }
   };
 
-  const handleLogout = async () => {
-    await signOut(auth);
-    setUser(null);
-  };
-
   return (
-    <div style={{ padding: "20px" }}>
-      <h1>Login / Signup</h1>
-      {user ? (
-        <>
-          <p>Welcome, {user.email}</p>
-          <button onClick={handleLogout}>Logout</button>
-        </>
-      ) : (
-        <>
-          <input
-            type="email"
-            placeholder="Email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-          /><br />
-          <input
-            type="password"
-            placeholder="Password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          /><br />
-          <button onClick={handleSignup}>Sign Up</button>
-          <button onClick={handleLogin}>Login</button>
-          {error && <p style={{ color: "red" }}>{error}</p>}
-        </>
-      )}
+    <div className="flex flex-col items-center justify-center min-h-screen">
+      <h1 className="text-2xl font-bold mb-4">Login</h1>
+      <input
+        type="email"
+        placeholder="Email"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+        className="border p-2 mb-2 w-64"
+      />
+      <input
+        type="password"
+        placeholder="Password"
+        value={password}
+        onChange={(e) => setPassword(e.target.value)}
+        className="border p-2 mb-2 w-64"
+      />
+      <button
+        onClick={handleLogin}
+        className="bg-blue-500 text-white px-4 py-2 rounded"
+      >
+        Login
+      </button>
+      {error && <p className="text-red-500 mt-2">{error}</p>}
     </div>
   );
 }
