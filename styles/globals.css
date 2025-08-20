@@ -6,3 +6,105 @@
 body {
   @apply bg-gray-900 text-white;
 }
+/* Reset */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Segoe UI", Roboto, sans-serif;
+}
+
+body {
+  background-color: #1a1a2e;
+  color: #ffffff;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Auth container */
+.auth-container {
+  background: #16213e;
+  padding: 2rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+  text-align: center;
+  width: 100%;
+  max-width: 400px;
+}
+
+.auth-container h1 {
+  margin-bottom: 1.5rem;
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.auth-form input {
+  padding: 10px;
+  border-radius: 6px;
+  border: none;
+  outline: none;
+}
+
+.auth-form button {
+  padding: 10px;
+  border: none;
+  border-radius: 6px;
+  background: #08d9d6;
+  color: #000;
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.auth-form button:hover {
+  background: #04b9b7;
+}
+
+/* Google button */
+.google-btn {
+  background: #db4437;
+  color: #fff;
+  padding: 10px;
+  margin-top: 1rem;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+}
+
+.google-btn:hover {
+  background: #c1351d;
+}
+
+/* Toggle button */
+.toggle-btn {
+  background: none;
+  border: none;
+  color: #08d9d6;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+/* Dashboard */
+.dashboard {
+  text-align: center;
+}
+
+.logout-btn {
+  margin-top: 1rem;
+  padding: 10px 15px;
+  border: none;
+  border-radius: 6px;
+  background: #e94560;
+  color: #fff;
+  cursor: pointer;
+}
+
+.logout-btn:hover {
+  background: #c9344d;
+}
