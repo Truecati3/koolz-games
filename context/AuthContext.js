@@ -1,43 +1,45 @@
-import { createContext, useContext, useEffect, useState } from 'react'
-import { onAuthStateChanged } from 'firebase/auth'
-import { auth } from '../firebase'
-import { getFirestore, doc, getDoc } from 'firebase/firestore'
+// context/AuthContext.js
+import { createContext, useContext, useEffect, useState } from "react";
+import { onAuthStateChanged } from "firebase/auth";
+import { auth } from "../firebase";
 
-const AuthContext = createContext()
+const AuthContext = createContext();
 
-export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null)
-  const [role, setRole] = useState(null)
-  const [loading, setLoading] = useState(true)
+// Wraps entire app with AuthProvider
+export function AuthProvider({ children }) {
+  const [user, setUser] = useState(null);
+  const [role, setRole] = useState("guest"); // "admin" | "user" | "guest"
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-      setUser(currentUser)
+    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+      if (firebaseUser) {
+        setUser(firebaseUser);
 
-      if (currentUser) {
-        const db = getFirestore()
-        const ref = doc(db, 'users', currentUser.uid)
-        const snap = await getDoc(ref)
-        if (snap.exists()) {
-          setRole(snap.data().role || 'user')
+        // ✅ Check if logged-in user is admin
+        if (firebaseUser.email === "snoxnukethe@gmail.com") {
+          setRole("admin");
         } else {
-          setRole('user')
+          setRole("user");
         }
       } else {
-        setRole(null)
+        setUser(null);
+        setRole("guest");
       }
+      setLoading(false);
+    });
 
-      setLoading(false)
-    })
-
-    return () => unsubscribe()
-  }, [])
+    return () => unsubscribe();
+  }, []);
 
   return (
     <AuthContext.Provider value={{ user, role, loading }}>
       {children}
     </AuthContext.Provider>
-  )
+  );
 }
 
-export const useAuth = () => useContext(AuthContext)
+// Hook to use anywhere
+export function useAuth() {
+  return useContext(AuthContext);
+}
