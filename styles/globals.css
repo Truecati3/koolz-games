@@ -1,4 +1,10 @@
-/* /styles/globals.css */
+/* Load Tailwind layers first */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* --- Your custom styles (Mothership-inspired theme) --- */
+
 /* Reset-ish */
 * { box-sizing: border-box; }
 html, body, #__next { height: 100%; }
@@ -11,13 +17,10 @@ body {
 
 /* Page containers */
 .page {
-  min-height: 100%;
-  display: grid;
-  place-items: center;
-  padding: 24px;
+  @apply min-h-full grid place-items-center p-6;
 }
 
-/* Auth card (Mothership-inspired) */
+/* Auth card */
 .auth-card {
   width: 100%;
   max-width: 440px;
@@ -27,7 +30,6 @@ body {
   padding: 24px;
   box-shadow: 0 20px 60px rgba(0,0,0,0.45), inset 0 0 0 1px rgba(255,255,255,0.02);
 }
-
 .auth-card h1 {
   margin: 0 0 14px;
   font-size: 28px;
@@ -35,12 +37,12 @@ body {
   color: #f0f3ff;
 }
 
+/* Form */
 .auth-form {
   display: grid;
   gap: 10px;
   margin-bottom: 10px;
 }
-
 .auth-form input {
   background: #0f1324;
   color: #fff;
@@ -56,16 +58,12 @@ body {
 
 /* Buttons */
 .btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+  @apply inline-flex items-center justify-center font-semibold cursor-pointer;
   border-radius: 10px;
   padding: 10px 12px;
   border: 1px solid #2a2e4a;
   background: #161a31;
   color: #e7ecff;
-  font-weight: 600;
-  cursor: pointer;
 }
 .btn:hover { filter: brightness(1.05); }
 .btn.primary {
@@ -73,25 +71,16 @@ body {
   color: #231903;
   border: none;
 }
-.btn.outline {
-  background: transparent;
-}
+.btn.outline { background: transparent; }
 
 /* Links + text */
-.muted {
-  color: #a7b0d4;
-  margin: 12px 0 0;
-  font-size: 14px;
-}
+.muted { color: #a7b0d4; margin: 12px 0 0; font-size: 14px; }
 a { color: #e7ecff; text-decoration: underline; cursor: pointer; }
 .error { color: #ff7b7b; margin-top: 8px; }
 
 /* Dashboard */
 .wrap { width: 100%; max-width: 1100px; }
-.dash-header {
-  display: flex; align-items: center; justify-content: space-between;
-  margin-bottom: 20px;
-}
+.dash-header { @apply flex items-center justify-between mb-5; }
 .brand { color: #ffd166; margin: 0; font-size: 28px; }
 
 .grid {
@@ -115,11 +104,15 @@ a { color: #e7ecff; text-decoration: underline; cursor: pointer; }
 
 /* Modal */
 .modal {
-  position: fixed; inset: 0; background: rgba(3,6,12,.92);
-  display: flex; align-items: center; justify-content: center;
-  z-index: 50;
+  @apply fixed inset-0 flex items-center justify-center z-50;
+  background: rgba(3,6,12,.92);
 }
-.frame { width: min(1200px, 95vw); height: min(700px, 85vh); border: 0; border-radius: 12px; }
+.frame {
+  width: min(1200px, 95vw);
+  height: min(700px, 85vh);
+  border: 0;
+  border-radius: 12px;
+}
 .close {
   position: absolute; top: 18px; right: 18px;
   width: 44px; height: 44px; border-radius: 999px; border: 0;
