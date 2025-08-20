@@ -1,75 +1,88 @@
+// /pages/login.js
 import { useState } from "react";
 import { useRouter } from "next/router";
 import { useAuth } from "../context/AuthContext";
 
 export default function LoginPage() {
-  const { login, googleLogin, signup } = useAuth();
+  const { login, signup, loginWithGoogle, user, loading } = useAuth();
+  const router = useRouter();
+  const [mode, setMode] = useState("login"); // 'login' | 'signup'
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [isSignup, setIsSignup] = useState(false);
-  const router = useRouter();
+  const [err, setErr] = useState("");
 
-  const handleSubmit = async (e) => {
+  if (user && !loading) {
+    // already logged in
+    router.replace("/dashboard");
+  }
+
+  async function handleSubmit(e) {
     e.preventDefault();
+    setErr("");
     try {
-      if (isSignup) {
-        await signup(email, password);
-      } else {
+      if (mode === "login") {
         await login(email, password);
+      } else {
+        await signup(email, password);
       }
       router.push("/dashboard");
-    } catch (error) {
-      console.error("Auth error:", error.message);
-      alert(error.message);
+    } catch (e2) {
+      setErr(e2.message || "Something went wrong");
     }
-  };
+  }
 
-  const handleGoogleLogin = async () => {
+  async function handleGoogle() {
+    setErr("");
     try {
-      await googleLogin();
+      await loginWithGoogle();
       router.push("/dashboard");
-    } catch (error) {
-      console.error("Google login error:", error.message);
-      alert(error.message);
+    } catch (e2) {
+      setErr(e2.message || "Google sign-in failed");
     }
-  };
+  }
 
   return (
-    <div className="auth-container">
-      <h1>{isSignup ? "Sign Up" : "Sign In"}</h1>
-      <form onSubmit={handleSubmit} className="auth-form">
-        <input
-          type="email"
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-        />
-        <input
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-        />
-        <button type="submit">{isSignup ? "Sign Up" : "Login"}</button>
-      </form>
+    <div className="page">
+      <div className="auth-card">
+        <h1>{mode === "login" ? "Sign In" : "Create Account"}</h1>
 
-      <p>OR</p>
-      <button onClick={handleGoogleLogin} className="google-btn">
-        Continue with Google
-      </button>
+        <form onSubmit={handleSubmit} className="auth-form">
+          <input
+            type="email"
+            placeholder="Email"
+            autoComplete="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+          />
+          <input
+            type="password"
+            placeholder="Password"
+            autoComplete={mode === "login" ? "current-password" : "new-password"}
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+          />
+          <button type="submit" className="btn primary">
+            {mode === "login" ? "Login" : "Sign Up"}
+          </button>
+        </form>
 
-      <p>
-        {isSignup ? "Already have an account?" : "Don't have an account?"}{" "}
-        <button
-          type="button"
-          onClick={() => setIsSignup(!isSignup)}
-          className="toggle-btn"
-        >
-          {isSignup ? "Login" : "Sign Up"}
+        <div className="muted">OR</div>
+
+        <button onClick={handleGoogle} className="btn outline">
+          Continue with Google
         </button>
-      </p>
+
+        {err && <p className="error">{err}</p>}
+
+        <p className="muted">
+          {mode === "login" ? "Don't have an account?" : "Already have an account?"}{" "}
+          <a onClick={() => setMode(mode === "login" ? "signup" : "login")}>
+            {mode === "login" ? "Sign Up" : "Log In"}
+          </a>
+        </p>
+      </div>
     </div>
   );
 }
