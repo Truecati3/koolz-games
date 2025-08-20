@@ -25,7 +25,7 @@ const games = [
   },
 ];
 
-const ADMIN_EMAIL = "youradmin@email.com"; // <-- replace with YOUR email
+const ADMIN_EMAIL = "snoxnukethe@gmail.com"; // <-- replace with YOUR email
 
 export default function Home() {
   const [user, setUser] = useState(null);
