@@ -1,4 +1,6 @@
 // pages/login.js
+import { doc, getDoc } from "firebase/firestore";
+import { db } from "../firebase";
 import { signUp } from "../lib/auth";
 import { useState } from "react";
 import { auth } from "../firebase";
@@ -25,8 +27,18 @@ export default function LoginPage() {
 
   const handleLogin = async () => {
     try {
-      const res = await signInWithEmailAndPassword(auth, email, password);
-      setUser(res.user);
+      const res = await const userDoc = await getDoc(doc(db, "users", user.user.uid));
+if (userDoc.exists()) {
+  const userData = userDoc.data();
+  console.log("User role:", userData.role);
+
+  if (userData.role === "admin") {
+    // show admin dashboard
+  } else {
+    // regular user dashboard
+  }
+}
+
     } catch (err) {
       setError(err.message);
     }
