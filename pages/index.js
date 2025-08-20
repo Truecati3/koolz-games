@@ -156,7 +156,6 @@ export default function Home() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-            />
             <input
               type="password"
               placeholder="password"
