@@ -1,133 +1,75 @@
+// pages/index.js
+import { useState, useEffect } from "react";
+import { db } from "../firebase";
+import { collection, getDocs, addDoc, deleteDoc, doc } from "firebase/firestore";
 import { useAuth } from "../context/AuthContext";
 
 export default function Home() {
+  const [games, setGames] = useState([]);
+  const [newGame, setNewGame] = useState("");
   const { user, role, loading } = useAuth();
 
-  if (loading) return <p>Loading...</p>;
-
-  return (
-    <div>
-      <h1>Welcome {user ? user.email : "Guest"}</h1>
-      {role === "admin" && <button>Add Game</button>}
-    </div>
-  );
-}
-
-import { useState, useEffect } from "react";
-import { auth, db } from "../firebase";
-import {
-  onAuthStateChanged,
-  signInWithEmailAndPassword,
-  createUserWithEmailAndPassword,
-  signOut,
-} from "firebase/auth";
-import {
-  collection,
-  addDoc,
-  getDocs,
-  deleteDoc,
-  doc
-} from "firebase/firestore";
-
-const ADMIN_EMAIL = "snoxnukethe@gmail.com"; // 👈 change this to your admin email
-
-export default function Home() {
-  const [user, setUser] = useState(null);
-  const [games, setGames] = useState([]);
-  const [newGame, setNewGame] = useState({ title: "", url: "" });
-
-  // Track login state
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (u) => {
-      setUser(u);
-    });
-    return () => unsubscribe();
-  }, []);
-
-  // Fetch games
   useEffect(() => {
     const fetchGames = async () => {
       const querySnapshot = await getDocs(collection(db, "games"));
-      const gamesData = querySnapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      }));
-      setGames(gamesData);
+      setGames(querySnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() })));
     };
     fetchGames();
   }, []);
 
-  // Add game (only admin)
   const handleAddGame = async () => {
-    if (user?.email !== ADMIN_EMAIL) return; // block non-admin
-    if (newGame.title && newGame.url) {
-      await addDoc(collection(db, "games"), newGame);
-      setNewGame({ title: "", url: "" });
-      window.location.reload();
-    }
+    if (!newGame.trim()) return;
+    const docRef = await addDoc(collection(db, "games"), { name: newGame });
+    setGames([...games, { id: docRef.id, name: newGame }]);
+    setNewGame("");
   };
 
-  // Delete game (only admin)
   const handleDeleteGame = async (id) => {
-    if (user?.email !== ADMIN_EMAIL) return; // block non-admin
     await deleteDoc(doc(db, "games", id));
-    setGames(games.filter((g) => g.id !== id));
+    setGames(games.filter((game) => game.id !== id));
   };
+
+  if (loading) return <p>Loading...</p>;
 
   return (
-    <div className="p-6">
-      <h1 className="text-3xl font-bold">Koolz Games</h1>
+    <div style={{ padding: "20px" }}>
+      <h1>Koolz Games</h1>
 
-      {/* Show Add Game form ONLY if admin */}
-      {user?.email === ADMIN_EMAIL && (
-        <div className="my-4">
+      {user ? (
+        <p>Logged in as {user.email} ({role})</p>
+      ) : (
+        <p>Not logged in</p>
+      )}
+
+      {/* Only show add game form for admins */}
+      {role === "admin" && (
+        <div>
           <input
-            className="border p-2 mr-2"
-            placeholder="Game Title"
-            value={newGame.title}
-            onChange={(e) => setNewGame({ ...newGame, title: e.target.value })}
+            type="text"
+            placeholder="New Game Name"
+            value={newGame}
+            onChange={(e) => setNewGame(e.target.value)}
           />
-          <input
-            className="border p-2 mr-2"
-            placeholder="Game URL"
-            value={newGame.url}
-            onChange={(e) => setNewGame({ ...newGame, url: e.target.value })}
-          />
-          <button
-            onClick={handleAddGame}
-            className="bg-green-500 text-white px-4 py-2 rounded"
-          >
-            Add Game
-          </button>
+          <button onClick={handleAddGame}>Add Game</button>
         </div>
       )}
 
-      {/* Games list */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <ul>
         {games.map((game) => (
-          <div
-            key={game.id}
-            className="border rounded p-4 shadow bg-white relative"
-          >
-            <h2 className="text-lg font-semibold">{game.title}</h2>
-            <iframe
-              src={game.url}
-              className="w-full h-64 border mt-2"
-              title={game.title}
-            ></iframe>
-
-            {/* Delete button visible only for admin */}
-            {user?.email === ADMIN_EMAIL && (
+          <li key={game.id} style={{ margin: "10px 0" }}>
+            {game.name}
+            {/* Only show delete button for admins */}
+            {role === "admin" && (
               <button
                 onClick={() => handleDeleteGame(game.id)}
-                className="bg-red-500 text-white px-3 py-1 mt-2 rounded"
+                style={{ marginLeft: "10px", color: "red" }}
               >
                 Delete
               </button>
             )}
-          </div>
+          </li>
         ))}
-      </div>
+      </ul>
     </div>
   );
 }
