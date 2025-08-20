@@ -1,3 +1,18 @@
+import { useAuth } from "../context/AuthContext";
+
+export default function Home() {
+  const { user, role, loading } = useAuth();
+
+  if (loading) return <p>Loading...</p>;
+
+  return (
+    <div>
+      <h1>Welcome {user ? user.email : "Guest"}</h1>
+      {role === "admin" && <button>Add Game</button>}
+    </div>
+  );
+}
+
 import { useState, useEffect } from "react";
 import { auth, db } from "../firebase";
 import {
