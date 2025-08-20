@@ -1,7 +1,8 @@
 // firebase.js
 import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
-import { getAnalytics } from "firebase/analytics";
+import { getFirestore } from "firebase/firestore";
+import { getAnalytics, isSupported } from "firebase/analytics";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCL44DAf-deKKKJLl-At8pCmyAMNGjQvjI",
@@ -10,12 +11,16 @@ const firebaseConfig = {
   storageBucket: "koolz-games.appspot.com",
   messagingSenderId: "621336210290",
   appId: "1:621336210290:web:4fcb1cbdf24dc896994beb",
-  measurementId: "G-1KDW80FSZ6"
+  measurementId: "G-1KDW80FSZ6",
 };
 
-// Initialize Firebase
 const app = initializeApp(firebaseConfig);
 
-// Export Auth + Analytics
 export const auth = getAuth(app);
-export const analytics = getAnalytics(app);
+export const db = getFirestore(app);
+
+if (typeof window !== "undefined") {
+  isSupported().then((ok) => {
+    if (ok) getAnalytics(app);
+  });
+}
