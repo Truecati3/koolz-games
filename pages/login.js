@@ -1,88 +1,90 @@
-// /pages/login.js
+// pages/login.js
 import { useState } from "react";
 import { useRouter } from "next/router";
 import { useAuth } from "../context/AuthContext";
 
-export default function LoginPage() {
-  const { login, signup, loginWithGoogle, user, loading } = useAuth();
+export default function Login() {
   const router = useRouter();
-  const [mode, setMode] = useState("login"); // 'login' | 'signup'
+  const { login, loginWithGoogle, signup, loading, user } = useAuth();
+
+  // If already logged in, go straight to dashboard
+  if (user) router.replace("/dashboard");
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [err, setErr] = useState("");
 
-  if (user && !loading) {
-    // already logged in
-    router.replace("/dashboard");
-  }
-
-  async function handleSubmit(e) {
+  const onLogin = async (e) => {
     e.preventDefault();
     setErr("");
     try {
-      if (mode === "login") {
-        await login(email, password);
-      } else {
-        await signup(email, password);
-      }
+      await login(email, password);
       router.push("/dashboard");
-    } catch (e2) {
-      setErr(e2.message || "Something went wrong");
+    } catch (e) {
+      setErr(e.message || "Login failed");
     }
-  }
+  };
 
-  async function handleGoogle() {
+  const onSignup = async () => {
+    setErr("");
+    try {
+      await signup(email, password);
+      router.push("/dashboard");
+    } catch (e) {
+      setErr(e.message || "Sign up failed");
+    }
+  };
+
+  const onGoogle = async () => {
     setErr("");
     try {
       await loginWithGoogle();
       router.push("/dashboard");
-    } catch (e2) {
-      setErr(e2.message || "Google sign-in failed");
+    } catch (e) {
+      setErr(e.message || "Google sign-in failed");
     }
-  }
+  };
 
   return (
-    <div className="page">
+    <main className="page">
       <div className="auth-card">
-        <h1>{mode === "login" ? "Sign In" : "Create Account"}</h1>
+        <h1>Sign In</h1>
 
-        <form onSubmit={handleSubmit} className="auth-form">
+        <form className="auth-form" onSubmit={onLogin}>
           <input
             type="email"
             placeholder="Email"
-            autoComplete="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
+            autoComplete="email"
           />
           <input
             type="password"
             placeholder="Password"
-            autoComplete={mode === "login" ? "current-password" : "new-password"}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
+            autoComplete="current-password"
           />
-          <button type="submit" className="btn primary">
-            {mode === "login" ? "Login" : "Sign Up"}
+          <button className="btn primary" type="submit" disabled={loading}>
+            {loading ? "Loading..." : "Login"}
           </button>
         </form>
 
-        <div className="muted">OR</div>
+        <p className="muted">OR</p>
 
-        <button onClick={handleGoogle} className="btn outline">
+        <button className="btn outline" onClick={onGoogle} disabled={loading}>
           Continue with Google
         </button>
 
-        {err && <p className="error">{err}</p>}
-
         <p className="muted">
-          {mode === "login" ? "Don't have an account?" : "Already have an account?"}{" "}
-          <a onClick={() => setMode(mode === "login" ? "signup" : "login")}>
-            {mode === "login" ? "Sign Up" : "Log In"}
-          </a>
+          Don&apos;t have an account?{" "}
+          <a onClick={onSignup}>Sign Up</a>
         </p>
+
+        {err && <div className="error">{err}</div>}
       </div>
-    </div>
+    </main>
   );
 }
