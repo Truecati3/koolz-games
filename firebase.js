@@ -1,24 +1,19 @@
-// lib/firebase.js
-import { initializeApp, getApps, getApp } from "firebase/app";
+// firebase.js
+import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
-import { getFirestore } from "firebase/firestore";
-import { getStorage } from "firebase/storage";
+// If you later add Firestore: import { getFirestore } from "firebase/firestore";
 
 const firebaseConfig = {
-  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
-  measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID,
+  apiKey: "AIzaSyCL44DAf-deKKKJLl-At8pCmyAMNGjQvjI",
+  authDomain: "koolz-games.firebaseapp.com",
+  projectId: "koolz-games",
+  storageBucket: "koolz-games.appspot.com",
+  messagingSenderId: "621336210290",
+  appId: "1:621336210290:web:4fcb1cbdf24dc896994beb",
+  measurementId: "G-1KDW80FSZ6"
 };
 
-// Prevent Firebase from initializing multiple times (important for Next.js hot reload)
-const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
-
-const auth = getAuth(app);
-const db = getFirestore(app);
-const storage = getStorage(app);
-
-export { app, auth, db, storage };
+const app = initializeApp(firebaseConfig);
+export const auth = getAuth(app);
+// export const db = getFirestore(app) // if/when you add Firestore
+export default app;
