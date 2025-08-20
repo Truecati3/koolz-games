@@ -1,19 +1,19 @@
-// context/AuthContext.js
 import { createContext, useContext, useEffect, useState } from "react";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "../firebase";
 
 const AuthContext = createContext();
 
-export const AuthProvider = ({ children }) => {
+export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
-      setUser(firebaseUser || null);
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser || null);
       setLoading(false);
     });
+
     return () => unsubscribe();
   }, []);
 
@@ -22,13 +22,12 @@ export const AuthProvider = ({ children }) => {
       {children}
     </AuthContext.Provider>
   );
-};
+}
 
-// 👇 Safe custom hook so you don’t have to repeat that fallback code
-export const useAuth = () => {
+export function useAuth() {
   const context = useContext(AuthContext);
   if (!context) {
-    return { user: null, loading: true }; // safe fallback
+    throw new Error("useAuth must be used within an AuthProvider");
   }
   return context;
-};
+}
