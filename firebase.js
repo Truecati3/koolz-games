@@ -3,6 +3,7 @@ import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import { getAnalytics } from "firebase/analytics";
 
+// Your Firebase configuration
 const firebaseConfig = {
   apiKey: "AIzaSyCL44DAf-deKKKJLl-At8pCmyAMNGjQvjI",
   authDomain: "koolz-games.firebaseapp.com",
@@ -15,12 +16,11 @@ const firebaseConfig = {
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
+
+// Auth
 const auth = getAuth(app);
 
-// Analytics only works in browser (not on server)
-let analytics;
-if (typeof window !== "undefined") {
-  analytics = getAnalytics(app);
-}
+// Analytics (disable on server)
+const analytics = typeof window !== "undefined" ? getAnalytics(app) : null;
 
-export { app, auth, analytics };
+export { auth, analytics };
