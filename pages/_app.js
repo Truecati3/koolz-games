@@ -1,4 +1,4 @@
-import "@/styles/globals.css";
+import '../styles/globals.css';
 import { useRouter } from "next/router";
 import { auth } from "../firebase";
 import { signOut } from "firebase/auth";
