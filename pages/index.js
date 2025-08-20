@@ -14,7 +14,7 @@ export default function Home() {
   const [user, setUser] = useState(null);
 
   // 👑 Change this to your real admin email
-  const ADMIN_EMAIL = "your-email@gmail.com";
+  const ADMIN_EMAIL = "snoxnukethe@gmail.com";
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
