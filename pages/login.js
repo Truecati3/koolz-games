@@ -1,105 +1,68 @@
+// pages/login.js
 import { useState } from "react";
-import Router from "next/router";
+import { auth } from "../firebase";
+import {
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  signOut,
+} from "firebase/auth";
 
-export default function Login() {
+export default function LoginPage() {
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [user, setUser] = useState(null);
   const [error, setError] = useState("");
 
-  const handleLogin = async (e) => {
-    e.preventDefault();
-    const res = await fetch("/api/login", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ password }),
-    });
-
-    const data = await res.json();
-
-    if (data.success) {
-      Router.push("/"); // Redirect to game hub on success
-    } else {
-      setError("Incorrect password. Try again.");
+  const handleSignup = async () => {
+    try {
+      const res = await createUserWithEmailAndPassword(auth, email, password);
+      setUser(res.user);
+    } catch (err) {
+      setError(err.message);
     }
   };
 
+  const handleLogin = async () => {
+    try {
+      const res = await signInWithEmailAndPassword(auth, email, password);
+      setUser(res.user);
+    } catch (err) {
+      setError(err.message);
+    }
+  };
+
+  const handleLogout = async () => {
+    await signOut(auth);
+    setUser(null);
+  };
+
   return (
-    <div className="login-container">
-      <h2 className="login-title">Login to Access Games</h2>
-      <form className="login-form" onSubmit={handleLogin}>
-        <input
-          type="password"
-          placeholder="Enter password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-          className="input-field"
-        />
-        <button type="submit" className="submit-btn">Login</button>
-      </form>
-      {error && <p className="error-msg">{error}</p>}
-
-      <style jsx>{`
-        .login-container {
-          background-color: #121212;
-          color: white;
-          text-align: center;
-          padding: 50px;
-          font-family: 'Arial', sans-serif;
-        }
-
-        .login-title {
-          font-size: 36px;
-          margin-bottom: 40px;
-          color: #f6b93b;
-        }
-
-        .login-form {
-          max-width: 400px;
-          margin: 0 auto;
-          padding: 20px;
-          border-radius: 8px;
-          background-color: #1e1e1e;
-          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-        }
-
-        .input-field {
-          width: 100%;
-          padding: 12px;
-          margin: 10px 0;
-          border-radius: 8px;
-          border: 1px solid #444;
-          background-color: #333;
-          color: white;
-        }
-
-        .input-field:focus {
-          outline: none;
-          border-color: #f6b93b;
-        }
-
-        .submit-btn {
-          width: 100%;
-          padding: 12px;
-          margin-top: 20px;
-          background-color: #f6b93b;
-          color: white;
-          border: none;
-          border-radius: 8px;
-          cursor: pointer;
-          font-weight: bold;
-        }
-
-        .submit-btn:hover {
-          background-color: #f39c12;
-        }
-
-        .error-msg {
-          color: red;
-          margin-top: 20px;
-        }
-      `}</style>
+    <div style={{ padding: "20px" }}>
+      <h1>Login / Signup</h1>
+      {user ? (
+        <>
+          <p>Welcome, {user.email}</p>
+          <button onClick={handleLogout}>Logout</button>
+        </>
+      ) : (
+        <>
+          <input
+            type="email"
+            placeholder="Email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          /><br />
+          <input
+            type="password"
+            placeholder="Password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          /><br />
+          <button onClick={handleSignup}>Sign Up</button>
+          <button onClick={handleLogin}>Login</button>
+          {error && <p style={{ color: "red" }}>{error}</p>}
+        </>
+      )}
     </div>
   );
 }
