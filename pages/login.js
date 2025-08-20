@@ -1,36 +1,75 @@
-import { useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/router";
 import { useAuth } from "../context/AuthContext";
-import { auth, provider } from "../firebase";
-import { signInWithPopup } from "firebase/auth";
 
-export default function Login() {
-  const { user } = useAuth();
+export default function LoginPage() {
+  const { login, googleLogin, signup } = useAuth();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [isSignup, setIsSignup] = useState(false);
   const router = useRouter();
 
-  // Redirect if already logged in
-  useEffect(() => {
-    if (user) router.push("/dashboard");
-  }, [user, router]);
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      if (isSignup) {
+        await signup(email, password);
+      } else {
+        await login(email, password);
+      }
+      router.push("/dashboard");
+    } catch (error) {
+      console.error("Auth error:", error.message);
+      alert(error.message);
+    }
+  };
 
   const handleGoogleLogin = async () => {
     try {
-      await signInWithPopup(auth, provider);
+      await googleLogin();
       router.push("/dashboard");
     } catch (error) {
-      console.error("Google login error:", error);
+      console.error("Google login error:", error.message);
+      alert(error.message);
     }
   };
 
   return (
-    <div className="flex flex-col items-center justify-center h-screen bg-gray-900 text-white">
-      <h1 className="text-3xl font-bold mb-6">Login</h1>
-      <button
-        onClick={handleGoogleLogin}
-        className="px-6 py-3 bg-blue-600 rounded-lg hover:bg-blue-700 transition"
-      >
-        Sign in with Google
+    <div className="auth-container">
+      <h1>{isSignup ? "Sign Up" : "Sign In"}</h1>
+      <form onSubmit={handleSubmit} className="auth-form">
+        <input
+          type="email"
+          placeholder="Email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+        />
+        <input
+          type="password"
+          placeholder="Password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          required
+        />
+        <button type="submit">{isSignup ? "Sign Up" : "Login"}</button>
+      </form>
+
+      <p>OR</p>
+      <button onClick={handleGoogleLogin} className="google-btn">
+        Continue with Google
       </button>
+
+      <p>
+        {isSignup ? "Already have an account?" : "Don't have an account?"}{" "}
+        <button
+          type="button"
+          onClick={() => setIsSignup(!isSignup)}
+          className="toggle-btn"
+        >
+          {isSignup ? "Login" : "Sign Up"}
+        </button>
+      </p>
     </div>
   );
 }
