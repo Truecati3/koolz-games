@@ -1,85 +1,72 @@
-// /context/AuthContext.js
+// context/AuthContext.js
 import { createContext, useContext, useEffect, useState } from "react";
 import {
   onAuthStateChanged,
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
-  signOut as fbSignOut,
   signInWithPopup,
+  signOut,
 } from "firebase/auth";
+import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
 import { auth, db, googleProvider } from "../firebase";
-import { doc, onSnapshot, setDoc } from "firebase/firestore";
 
-const Ctx = createContext(null);
+const AuthContext = createContext({ user: null, loading: true, role: "guest" });
 
-export function AuthProvider({ children }) {
+export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
-  const [profile, setProfile] = useState(null); // {role,banned,email,...}
+  const [role, setRole] = useState("guest");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // client-only
     const unsub = onAuthStateChanged(auth, async (u) => {
-      setUser(u);
-      if (u) {
-        const ref = doc(db, "users", u.uid);
-        // Ensure a profile doc exists
-        setDoc(
-          ref,
-          { email: u.email || "", role: "user", banned: false },
-          { merge: true }
-        );
-        // Live subscribe to profile
-        const off = onSnapshot(ref, (snap) => setProfile(snap.data() || null));
+      if (!u) {
+        setUser(null);
+        setRole("guest");
         setLoading(false);
-        return () => off();
-      } else {
-        setProfile(null);
+        return;
+      }
+
+      setUser(u);
+      try {
+        const ref = doc(db, "users", u.uid);
+        const snap = await getDoc(ref);
+        if (snap.exists()) {
+          setRole(snap.data().role || "user");
+        } else {
+          await setDoc(
+            ref,
+            {
+              email: u.email || "",
+              role: "user",
+              banned: false,
+              createdAt: serverTimestamp(),
+            },
+            { merge: true }
+          );
+          setRole("user");
+        }
+      } catch (e) {
+        console.error("Failed to read role:", e);
+        setRole("user");
+      } finally {
         setLoading(false);
       }
     });
+
     return () => unsub();
   }, []);
 
-  const login = (email, password) =>
-    signInWithEmailAndPassword(auth, email, password);
-
-  const signup = (email, password) =>
-    createUserWithEmailAndPassword(auth, email, password);
-
-  const loginWithGoogle = () => signInWithPopup(auth, googleProvider);
-
-  const signOut = () => fbSignOut(auth);
-
   const value = {
     user,
+    role,
     loading,
-    role: profile?.role || "user",
-    banned: !!profile?.banned,
-    profile,
-    login,
-    signup,
-    loginWithGoogle,
-    signOut,
+    login: (email, password) => signInWithEmailAndPassword(auth, email, password),
+    signup: (email, password) => createUserWithEmailAndPassword(auth, email, password),
+    loginWithGoogle: () => signInWithPopup(auth, googleProvider),
+    logout: () => signOut(auth),
   };
 
-  return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
-}
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+};
 
-export function useAuth() {
-  const ctx = useContext(Ctx);
-  // During SSR it can be null — return a safe shape
-  return (
-    ctx || {
-      user: null,
-      loading: true,
-      role: "user",
-      banned: false,
-      profile: null,
-      login: async () => {},
-      signup: async () => {},
-      loginWithGoogle: async () => {},
-      signOut: async () => {},
-    }
-  );
-}
+export const useAuth = () => useContext(AuthContext);
