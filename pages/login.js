@@ -12,61 +12,57 @@ export default function Login() {
   const router = useRouter();
 
   const handleLogin = async () => {
+    setError("");
     try {
+      // Sign user in
       const res = await signInWithEmailAndPassword(auth, email, password);
       const user = res.user;
 
-      // Check if user exists in Firestore
-      const userDocRef = doc(db, "users", user.uid);
-      const userDoc = await getDoc(userDocRef);
-
-      // Force admin role ONLY for your email
-      let role = user.email === "snoxnukethe@gmail.com" ? "admin" : "user";
+      // Reference Firestore user doc
+      const userRef = doc(db, "users", user.uid);
+      const userDoc = await getDoc(userRef);
 
       if (!userDoc.exists()) {
-        // If no user record exists, create one
-        await setDoc(userDocRef, {
+        // Assign role based on email
+        const role = user.email === "snoxnukethe@gmail.com" ? "admin" : "user";
+
+        // Save new user in Firestore
+        await setDoc(userRef, {
           email: user.email,
-          role: role,
+          role,
         });
+
+        console.log("New user added with role:", role);
       } else {
-        // Update role if necessary
-        const userData = userDoc.data();
-        if (userData.role !== role) {
-          await setDoc(userDocRef, { ...userData, role: role });
-        }
+        console.log("User already exists:", userDoc.data());
       }
 
-      router.push("/");
+      router.push("/"); // redirect to home
     } catch (err) {
-      setError(err.message);
+      console.error(err);
+      setError("Invalid email or password");
     }
   };
 
   return (
-    <div className="flex flex-col items-center justify-center h-screen">
-      <h1 className="text-3xl font-bold mb-4">Login</h1>
+    <div style={{ padding: "20px" }}>
+      <h1>Login</h1>
       <input
         type="email"
         placeholder="Email"
         value={email}
         onChange={(e) => setEmail(e.target.value)}
-        className="border p-2 mb-2 w-64"
       />
+      <br />
       <input
         type="password"
         placeholder="Password"
         value={password}
         onChange={(e) => setPassword(e.target.value)}
-        className="border p-2 mb-4 w-64"
       />
-      <button
-        onClick={handleLogin}
-        className="bg-blue-500 text-white px-4 py-2 rounded"
-      >
-        Login
-      </button>
-      {error && <p className="text-red-500 mt-2">{error}</p>}
+      <br />
+      <button onClick={handleLogin}>Login</button>
+      {error && <p style={{ color: "red" }}>{error}</p>}
     </div>
   );
 }
