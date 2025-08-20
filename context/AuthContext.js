@@ -1,45 +1,43 @@
-// context/AuthContext.js
-import { createContext, useContext, useEffect, useState } from "react";
-import { auth, db } from "../firebase";
-import { onAuthStateChanged } from "firebase/auth";
-import { doc, getDoc } from "firebase/firestore";
+import { createContext, useContext, useEffect, useState } from 'react'
+import { onAuthStateChanged } from 'firebase/auth'
+import { auth } from '../firebase'
+import { getFirestore, doc, getDoc } from 'firebase/firestore'
 
-const AuthContext = createContext();
+const AuthContext = createContext()
 
-export function AuthProvider({ children }) {
-  const [user, setUser] = useState(null);
-  const [role, setRole] = useState("user"); // default
-  const [loading, setLoading] = useState(true);
+export const AuthProvider = ({ children }) => {
+  const [user, setUser] = useState(null)
+  const [role, setRole] = useState(null)
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-      if (currentUser) {
-        setUser(currentUser);
+      setUser(currentUser)
 
-        // Get role from Firestore
-        const userDoc = await getDoc(doc(db, "users", currentUser.uid));
-        if (userDoc.exists()) {
-          setRole(userDoc.data().role);
+      if (currentUser) {
+        const db = getFirestore()
+        const ref = doc(db, 'users', currentUser.uid)
+        const snap = await getDoc(ref)
+        if (snap.exists()) {
+          setRole(snap.data().role || 'user')
         } else {
-          setRole("user");
+          setRole('user')
         }
       } else {
-        setUser(null);
-        setRole("user");
+        setRole(null)
       }
-      setLoading(false);
-    });
 
-    return () => unsubscribe();
-  }, []);
+      setLoading(false)
+    })
+
+    return () => unsubscribe()
+  }, [])
 
   return (
     <AuthContext.Provider value={{ user, role, loading }}>
       {children}
     </AuthContext.Provider>
-  );
+  )
 }
 
-export function useAuth() {
-  return useContext(AuthContext);
-}
+export const useAuth = () => useContext(AuthContext)
