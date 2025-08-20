@@ -1,68 +1,62 @@
 import { useEffect, useState } from "react";
+import { auth, db } from "../firebase";
 import {
-  getAuth,
-  signInWithEmailAndPassword,
-  createUserWithEmailAndPassword,
-  signOut,
   onAuthStateChanged,
+  signInWithEmailAndPassword,
+  signOut,
 } from "firebase/auth";
 import {
-  getFirestore,
   collection,
   addDoc,
-  getDocs,
   deleteDoc,
   doc,
+  getDocs,
 } from "firebase/firestore";
-import app from "../firebase";
-
-const auth = getAuth(app);
-const db = getFirestore(app);
 
 export default function Home() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
   const [user, setUser] = useState(null);
   const [games, setGames] = useState([]);
-  const [newGame, setNewGame] = useState({ name: "", url: "", icon: "" });
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [currentGame, setCurrentGame] = useState(null);
   const [users, setUsers] = useState([]);
+  const [newGame, setNewGame] = useState({ name: "", url: "", icon: "" });
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [currentGame, setCurrentGame] = useState("");
 
   const isAdmin = user?.email === "snoxnukethe@gmail.com";
 
+  // 🔑 Load auth state
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (u) => {
+    const unsubscribe = onAuthStateChanged(auth, async (u) => {
       setUser(u);
-      if (u) fetchGames();
-      if (isAdmin) fetchUsers();
+
+      if (u) {
+        await fetchGames();
+        if (u.email === "snoxnukethe@gmail.com") {
+          await fetchUsers();
+        }
+      } else {
+        setGames([]);
+        setUsers([]);
+      }
     });
+
     return () => unsubscribe();
-  }, [isAdmin]);
+  }, []);
 
-  const handleSignIn = async () => {
-    try {
-      await signInWithEmailAndPassword(auth, email, password);
-    } catch (err) {
-      alert(err.message);
-    }
-  };
-
-  const handleSignUp = async () => {
-    try {
-      await createUserWithEmailAndPassword(auth, email, password);
-    } catch (err) {
-      alert(err.message);
-    }
-  };
-
-  const handleSignOut = () => signOut(auth);
-
+  // 🎮 Fetch Games
   const fetchGames = async () => {
     const snapshot = await getDocs(collection(db, "games"));
-    setGames(snapshot.docs.map((d) => ({ id: d.id, ...d.data() })));
+    setGames(snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() })));
   };
 
+  // 👥 Fetch Users (admin only)
+  const fetchUsers = async () => {
+    const snapshot = await getDocs(collection(db, "users"));
+    setUsers(snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() })));
+  };
+
+  // ➕ Add Game
   const addGame = async () => {
     if (!newGame.name || !newGame.url || !newGame.icon) return;
     await addDoc(collection(db, "games"), newGame);
@@ -70,77 +64,91 @@ export default function Home() {
     fetchGames();
   };
 
+  // ❌ Delete Game
   const deleteGame = async (id) => {
     await deleteDoc(doc(db, "games", id));
     fetchGames();
   };
 
-  const fetchUsers = async () => {
-    const snapshot = await getDocs(collection(db, "users"));
-    setUsers(snapshot.docs.map((d) => ({ id: d.id, ...d.data() })));
+  // 🔓 Login
+  const login = async () => {
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+    } catch (err) {
+      alert(err.message);
+    }
   };
 
-  const banUser = async (id) => {
-    await deleteDoc(doc(db, "users", id));
-    fetchUsers();
+  // 🔒 Logout
+  const logout = async () => {
+    await signOut(auth);
   };
 
+  // 🎮 Game Modal
   const openGame = (url) => {
     setCurrentGame(url);
     setIsModalOpen(true);
   };
-
-  const closeModal = () => {
-    setCurrentGame(null);
-    setIsModalOpen(false);
-  };
+  const closeModal = () => setIsModalOpen(false);
 
   return (
     <div className="container">
       {!user ? (
         <div className="auth-card">
-          <h2>Sign In</h2>
+          <h2>Login</h2>
           <div className="auth-form">
             <input
               type="email"
-              placeholder="Email"
+              placeholder="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
             />
             <input
               type="password"
-              placeholder="Password"
+              placeholder="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
             />
-            <button onClick={handleSignIn}>Sign In</button>
-            <button onClick={handleSignUp}>Sign Up</button>
+            <button onClick={login}>Login</button>
           </div>
         </div>
       ) : (
         <div>
           <div className="header">
             <h1 className="title">Koolz Games</h1>
-            <button className="signout" onClick={handleSignOut}>
-              Sign Out
-            </button>
+            <div className="user-row">
+              <span className="email">{user.email}</span>
+              <button className="signout" onClick={logout}>
+                Sign Out
+              </button>
+            </div>
           </div>
+
           {isAdmin && (
             <div className="add-form">
               <input
-                placeholder="Game name"
+                type="text"
+                placeholder="Game Name"
                 value={newGame.name}
-                onChange={(e) => setNewGame({ ...newGame, name: e.target.value })}
+                onChange={(e) =>
+                  setNewGame((prev) => ({ ...prev, name: e.target.value }))
+                }
               />
               <input
+                type="text"
                 placeholder="Game URL"
                 value={newGame.url}
-                onChange={(e) => setNewGame({ ...newGame, url: e.target.value })}
+                onChange={(e) =>
+                  setNewGame((prev) => ({ ...prev, url: e.target.value }))
+                }
               />
               <input
+                type="text"
                 placeholder="Game Icon URL"
                 value={newGame.icon}
-                onChange={(e) => setNewGame({ ...newGame, icon: e.target.value })}
+                onChange={(e) =>
+                  setNewGame((prev) => ({ ...prev, icon: e.target.value }))
+                }
               />
               <button onClick={addGame}>Add Game</button>
             </div>
@@ -172,20 +180,6 @@ export default function Home() {
             ))}
           </div>
 
-          {isAdmin && (
-            <div className="admin-panel">
-              <h2>All Users</h2>
-              {users.map((u) => (
-                <div className="user-row" key={u.id}>
-                  <span className="email">{u.email}</span>
-                  <button className="delete" onClick={() => banUser(u.id)}>
-                    Ban
-                  </button>
-                </div>
-              ))}
-            </div>
-          )}
-
           {isModalOpen && (
             <div className="modal" onClick={closeModal}>
               <button onClick={closeModal} className="close">
@@ -202,14 +196,13 @@ export default function Home() {
           min-height: 100vh;
           background: #0f0f12;
           color: #fff;
-          font-family: Inter, sans-serif;
           padding: 24px;
         }
         .auth-card {
-          max-width: 400px;
+          max-width: 420px;
           margin: 12vh auto 0;
-          background: #16161a;
           padding: 24px;
+          background: #16161a;
           border: 1px solid #2a2a32;
           border-radius: 16px;
           box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
@@ -236,19 +229,29 @@ export default function Home() {
         }
         .header {
           display: flex;
-          justify-content: space-between;
           align-items: center;
+          justify-content: space-between;
+          margin-bottom: 20px;
         }
         .title {
           font-size: 28px;
           color: #f6b93b;
         }
+        .user-row {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+        }
+        .email {
+          color: #c9c9d6;
+          font-size: 14px;
+        }
         .signout {
-          border: 1px solid #3a3a48;
           background: transparent;
+          border: 1px solid #3a3a48;
           color: #fff;
-          padding: 6px 10px;
           border-radius: 10px;
+          padding: 6px 10px;
           cursor: pointer;
         }
         .add-form {
@@ -283,7 +286,7 @@ export default function Home() {
           border-radius: 14px;
           padding: 10px;
           cursor: pointer;
-          transition: 0.2s ease;
+          transition: transform 0.15s ease, box-shadow 0.2s ease;
         }
         .card:hover {
           transform: translateY(-4px);
@@ -297,34 +300,22 @@ export default function Home() {
         }
         .name-row {
           display: flex;
-          justify-content: space-between;
           align-items: center;
+          justify-content: space-between;
           margin-top: 8px;
         }
         .name {
+          color: #e7e7f3;
           font-weight: 600;
         }
         .delete {
           background: #ef4444;
           border: 0;
-          border-radius: 50%;
+          border-radius: 999px;
           width: 28px;
           height: 28px;
           color: #fff;
           cursor: pointer;
-        }
-        .admin-panel {
-          margin-top: 30px;
-        }
-        .user-row {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          margin-top: 10px;
-        }
-        .email {
-          color: #c9c9d6;
-          font-size: 14px;
         }
         .modal {
           position: fixed;
@@ -336,8 +327,8 @@ export default function Home() {
           z-index: 50;
         }
         .iframe {
-          width: 80%;
-          height: 80%;
+          width: 100%;
+          height: 100%;
           border: 0;
         }
         .close {
