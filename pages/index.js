@@ -1,4 +1,9 @@
 // pages/index.js
+if (userData.role === "admin") {
+  return <AdminPanel />;
+} else {
+  return <UserDashboard />;
+}
 import { useEffect, useState } from "react";
 import { auth, db } from "../firebase";
 import {
