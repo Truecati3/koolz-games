@@ -1,76 +1,50 @@
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import { auth, db } from "../firebase";
 import {
-  onAuthStateChanged,
   signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
   signOut,
+  onAuthStateChanged,
 } from "firebase/auth";
 import {
   collection,
+  getDocs,
   addDoc,
   deleteDoc,
   doc,
-  getDocs,
 } from "firebase/firestore";
 
 export default function Home() {
   const [user, setUser] = useState(null);
-  const [games, setGames] = useState([]);
-  const [users, setUsers] = useState([]);
-  const [newGame, setNewGame] = useState({ name: "", url: "", icon: "" });
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [currentGame, setCurrentGame] = useState("");
+  const [games, setGames] = useState([]);
+  const [newGame, setNewGame] = useState("");
 
-  const isAdmin = user?.email === "snoxnukethe@gmail.com";
-
-  // 🔑 Load auth state
+  // track login state
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (u) => {
-      setUser(u);
-
-      if (u) {
-        await fetchGames();
-        if (u.email === "snoxnukethe@gmail.com") {
-          await fetchUsers();
-        }
+    const unsub = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+      if (currentUser) {
+        fetchGames();
       } else {
         setGames([]);
-        setUsers([]);
       }
     });
-
-    return () => unsubscribe();
+    return () => unsub();
   }, []);
 
-  // 🎮 Fetch Games
+  // fetch games
   const fetchGames = async () => {
-    const snapshot = await getDocs(collection(db, "games"));
-    setGames(snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() })));
+    try {
+      const snap = await getDocs(collection(db, "games"));
+      setGames(snap.docs.map((doc) => ({ id: doc.id, ...doc.data() })));
+    } catch (err) {
+      console.error("Error fetching games:", err);
+    }
   };
 
-  // 👥 Fetch Users (admin only)
-  const fetchUsers = async () => {
-    const snapshot = await getDocs(collection(db, "users"));
-    setUsers(snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() })));
-  };
-
-  // ➕ Add Game
-  const addGame = async () => {
-    if (!newGame.name || !newGame.url || !newGame.icon) return;
-    await addDoc(collection(db, "games"), newGame);
-    setNewGame({ name: "", url: "", icon: "" });
-    fetchGames();
-  };
-
-  // ❌ Delete Game
-  const deleteGame = async (id) => {
-    await deleteDoc(doc(db, "games", id));
-    fetchGames();
-  };
-
-  // 🔓 Login
+  // login
   const login = async () => {
     try {
       await signInWithEmailAndPassword(auth, email, password);
@@ -79,117 +53,132 @@ export default function Home() {
     }
   };
 
-  // 🔒 Logout
+  // sign up
+  const register = async () => {
+    try {
+      await createUserWithEmailAndPassword(auth, email, password);
+    } catch (err) {
+      alert(err.message);
+    }
+  };
+
+  // logout
   const logout = async () => {
     await signOut(auth);
   };
 
-  // 🎮 Game Modal
-  const openGame = (url) => {
-    setCurrentGame(url);
-    setIsModalOpen(true);
+  // add game (admin only)
+  const addGame = async () => {
+    if (!newGame) return;
+    try {
+      await addDoc(collection(db, "games"), { title: newGame });
+      setNewGame("");
+      fetchGames();
+    } catch (err) {
+      alert(err.message);
+    }
   };
-  const closeModal = () => setIsModalOpen(false);
+
+  // delete game (admin only)
+  const removeGame = async (id) => {
+    try {
+      await deleteDoc(doc(db, "games", id));
+      fetchGames();
+    } catch (err) {
+      alert(err.message);
+    }
+  };
+
+  // check if user is admin
+  const isAdmin = user?.email === "snoxnukethe@gmail.com";
 
   return (
-    <div className="container">
+    <div className="min-h-screen flex items-center justify-center bg-black text-white">
       {!user ? (
-        <div className="auth-card">
-          <h2>Login</h2>
-          <div className="auth-form">
-            <input
-              type="email"
-              placeholder="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-            />
-            <input
-              type="password"
-              placeholder="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
-            <button onClick={login}>Login</button>
-          </div>
+        <div className="bg-gray-900 p-6 rounded-xl shadow-lg w-96 text-center">
+          <h2 className="text-2xl font-bold mb-4">Login</h2>
+          <input
+            type="email"
+            placeholder="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="w-full p-2 mb-3 rounded bg-gray-800 text-white"
+          />
+          <input
+            type="password"
+            placeholder="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className="w-full p-2 mb-3 rounded bg-gray-800 text-white"
+          />
+          <button
+            onClick={login}
+            className="w-full bg-yellow-500 text-black py-2 rounded font-bold mb-2"
+          >
+            Login
+          </button>
+          <button
+            onClick={register}
+            className="w-full bg-blue-500 text-white py-2 rounded font-bold"
+          >
+            Sign Up
+          </button>
         </div>
       ) : (
-        <div>
-          <div className="header">
-            <h1 className="title">Koolz Games</h1>
-            <div className="user-row">
-              <span className="email">{user.email}</span>
-              <button className="signout" onClick={logout}>
-                Sign Out
-              </button>
-            </div>
+        <div className="w-full max-w-2xl p-6 bg-gray-900 rounded-xl shadow-lg">
+          <div className="flex justify-between mb-4">
+            <h2 className="text-xl font-bold">Welcome {user.email}</h2>
+            <button
+              onClick={logout}
+              className="bg-red-500 px-3 py-1 rounded text-white"
+            >
+              Logout
+            </button>
           </div>
+
+          <h3 className="text-lg mb-4">Games</h3>
+          <ul className="mb-4">
+            {games.map((game) => (
+              <li
+                key={game.id}
+                className="flex justify-between items-center bg-gray-800 p-2 rounded mb-2"
+              >
+                {game.title}
+                {isAdmin && (
+                  <button
+                    onClick={() => removeGame(game.id)}
+                    className="bg-red-600 px-2 py-1 rounded text-white"
+                  >
+                    Delete
+                  </button>
+                )}
+              </li>
+            ))}
+          </ul>
 
           {isAdmin && (
-            <div className="add-form">
+            <div className="flex space-x-2">
               <input
                 type="text"
-                placeholder="Game Name"
-                value={newGame.name}
-                onChange={(e) =>
-                  setNewGame((prev) => ({ ...prev, name: e.target.value }))
-                }
+                placeholder="New game"
+                value={newGame}
+                onChange={(e) => setNewGame(e.target.value)}
+                className="flex-1 p-2 rounded bg-gray-800 text-white"
               />
-              <input
-                type="text"
-                placeholder="Game URL"
-                value={newGame.url}
-                onChange={(e) =>
-                  setNewGame((prev) => ({ ...prev, url: e.target.value }))
-                }
-              />
-              <input
-                type="text"
-                placeholder="Game Icon URL"
-                value={newGame.icon}
-                onChange={(e) =>
-                  setNewGame((prev) => ({ ...prev, icon: e.target.value }))
-                }
-              />
-              <button onClick={addGame}>Add Game</button>
-            </div>
-          )}
-
-          <div className="grid">
-            {games.map((game) => (
-              <div
-                className="card"
-                key={game.id}
-                onClick={() => openGame(game.url)}
+              <button
+                onClick={addGame}
+                className="bg-green-500 px-3 py-1 rounded text-white"
               >
-                <img src={game.icon} alt={game.name} className="icon" />
-                <div className="name-row">
-                  <p className="name">{game.name}</p>
-                  {isAdmin && (
-                    <button
-                      className="delete"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        deleteGame(game.id);
-                      }}
-                    >
-                      ×
-                    </button>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {isModalOpen && (
-            <div className="modal" onClick={closeModal}>
-              <button onClick={closeModal} className="close">
-                X
+                Add
               </button>
-              <iframe src={currentGame} className="iframe" />
             </div>
           )}
         </div>
       )}
+    </div>
+  );
+}
+
 
       <style jsx>{`
         .container {
