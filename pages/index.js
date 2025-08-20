@@ -1,137 +1,255 @@
-import { useState, useMemo } from "react";
-import { signIn, signOut, useSession } from "next-auth/react";
+// pages/index.js
+import { useState } from "react";
+import { auth } from "../firebase";
+import {
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  signOut,
+} from "firebase/auth";
 
 const games = [
-  { name: "1v1.lol", url: "https://1v1.lol/", icon: "https://img.utdstc.com/icon/983/22a/98322a3b2be892eed31589906ffd949b68bcccc9a21ba562987965b5ec6bc6de:200" },
-  { name: "Slope", url: "https://slopegame.online/", icon: "https://slither.io/s/fav/snake.png" },
-  // add as many as you like...
+  {
+    name: "1v1.lol",
+    url: "https://1v1.lol/",
+    icon: "https://img.utdstc.com/icon/983/22a/98322a3b2be892eed31589906ffd949b68bcccc9a21ba562987965b5ec6bc6de:200",
+  },
+  {
+    name: "Krunker",
+    url: "https://krunker.io",
+    icon: "https://i.imgur.com/EvR8VtQ.png",
+  },
+  {
+    name: "Paper.io",
+    url: "https://paper-io.com",
+    icon: "https://i.imgur.com/tZz9V6T.png",
+  },
 ];
 
+const ADMIN_EMAIL = "youradmin@email.com"; // <-- replace with YOUR email
+
 export default function Home() {
-  const { data: session, status } = useSession();
-  const [search, setSearch] = useState("");
-  const [current, setCurrent] = useState(null); // {name,url}
-  const [iframeError, setIframeError] = useState(false);
+  const [user, setUser] = useState(null);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [currentGame, setCurrentGame] = useState("");
 
-  const filtered = useMemo(
-    () => games
-      .slice()
-      .sort((a, b) => a.name.localeCompare(b.name))
-      .filter(g => g.name.toLowerCase().includes(search.toLowerCase())),
-    [search]
-  );
-
-  const open = (g) => {
-    setIframeError(false);
-    setCurrent(g);
-  };
-  const close = () => {
-    setCurrent(null);
+  // Register new account
+  const handleSignup = async (e) => {
+    e.preventDefault();
+    try {
+      const cred = await createUserWithEmailAndPassword(auth, email, password);
+      setUser(cred.user);
+    } catch (err) {
+      alert(err.message);
+    }
   };
 
-  const isAuthed = status === "authenticated";
-  const banned = isAuthed && session.user?.banned;
+  // Login
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    try {
+      const cred = await signInWithEmailAndPassword(auth, email, password);
+      setUser(cred.user);
+    } catch (err) {
+      alert(err.message);
+    }
+  };
+
+  // Logout
+  const handleLogout = async () => {
+    await signOut(auth);
+    setUser(null);
+  };
+
+  // Open game
+  const openGame = (url) => {
+    setCurrentGame(url);
+    setIsModalOpen(true);
+  };
+
+  // Close game
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setCurrentGame("");
+  };
 
   return (
     <div className="container">
-      <header className="topbar">
-        <h1 className="title">Koolz Games</h1>
-        <div className="auth">
-          {status === "loading" ? null : isAuthed ? (
-            <>
-              <span className="hello">Hi, {session.user.email}</span>
-              {session.user.role === "admin" && (
-                <a className="adminLink" href="/admin">Admin</a>
-              )}
-              <button onClick={() => signOut()} className="btn">Log out</button>
-            </>
-          ) : (
-            <>
-              <a className="btn" href="/auth/login">Log in</a>
-              <a className="btn secondary" href="/auth/signup">Sign up</a>
-            </>
-          )}
-        </div>
-      </header>
-
-      {!isAuthed ? (
-        <p className="hint">Log in to play.</p>
-      ) : banned ? (
-        <p className="hint">Your account is banned.</p>
-      ) : (
-        <>
-          <div className="searchBar">
+      {!user ? (
+        <div className="auth-box">
+          <h2>Login or Create Account</h2>
+          <form>
             <input
-              className="searchInput"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search games…"
+              type="email"
+              placeholder="Email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="input"
             />
-            {search && (
-              <button className="clearBtn" onClick={() => setSearch("")}>Clear</button>
+            <input
+              type="password"
+              placeholder="Password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="input"
+            />
+            <button onClick={handleLogin} className="btn">
+              Login
+            </button>
+            <button onClick={handleSignup} className="btn secondary">
+              Sign Up
+            </button>
+          </form>
+        </div>
+      ) : (
+        <div>
+          <div className="topbar">
+            <p>Welcome, {user.email}</p>
+            <button onClick={handleLogout} className="btn small">
+              Logout
+            </button>
+            {user.email === ADMIN_EMAIL && (
+              <button className="btn danger small">Admin: Ban User</button>
             )}
           </div>
 
-          {filtered.length === 0 ? (
-            <p className="hint">No games found.</p>
-          ) : (
-            <div className="grid">
-              {filtered.map(g => (
-                <div className="card" key={g.name} onClick={() => open(g)}>
-                  <img className="icon" src={g.icon} alt={g.name} />
-                  <div className="name">{g.name}</div>
-                </div>
-              ))}
-            </div>
-          )}
-        </>
-      )}
+          <h1 className="title">Unblocked Games Hub</h1>
+          <div className="games-container">
+            {games.map((game) => (
+              <div
+                className="game-icon"
+                key={game.name}
+                onClick={() => openGame(game.url)}
+              >
+                <img src={game.icon} alt={game.name} className="icon-img" />
+                <p className="game-name">{game.name}</p>
+              </div>
+            ))}
+          </div>
 
-      {/* Fullscreen modal */}
-      {current && (
-        <div className="overlay">
-          <button className="close" onClick={close}>✕</button>
-          {!iframeError ? (
-            <iframe
-              src={current.url}
-              className="frame"
-              allowFullScreen
-              onError={() => setIframeError(true)}
-            />
-          ) : (
-            <div className="frameError">
-              <h2>Can’t embed this site</h2>
-              <p>
-                This site prevents embedding in iframes. 
-                <a href={current.url} target="_blank" rel="noreferrer"> Open in a new tab</a>.
-              </p>
+          {isModalOpen && (
+            <div className="modal">
+              <iframe src={currentGame} className="game-iframe" />
+              <button onClick={closeModal} className="close-btn">X</button>
             </div>
           )}
         </div>
       )}
 
       <style jsx>{`
-        .container { background:#121212; min-height:100vh; color:#fff; padding:16px; font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial; }
-        .topbar { display:flex; align-items:center; justify-content:space-between; gap:12px; }
-        .title { margin:8px 0; color:#f6b93b; }
-        .auth { display:flex; align-items:center; gap:10px; }
-        .hello { opacity:.8; }
-        .adminLink { color:#f6b93b; text-decoration:none; border-bottom:1px dotted #f6b93b; }
-        .btn { background:#f6b93b; color:#121212; border:0; padding:8px 12px; border-radius:8px; cursor:pointer; text-decoration:none; }
-        .btn.secondary { background:#333; color:#fff; }
-        .hint { text-align:center; margin-top:40px; opacity:.8; }
-        .searchBar { display:flex; justify-content:center; align-items:center; gap:10px; margin:20px auto 24px; }
-        .searchInput { width:60%; max-width:520px; padding:10px 12px; border-radius:10px; border:1px solid #444; background:#1e1e1e; color:#fff; }
-        .clearBtn { padding:10px 12px; background:#e74c3c; color:#fff; border:0; border-radius:8px; cursor:pointer; }
-        .grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap:16px; }
-        .card { background:#1a1a1a; border-radius:14px; padding:10px; cursor:pointer; box-shadow: 0 4px 16px rgba(0,0,0,.25); transition:.2s; }
-        .card:hover { transform: translateY(-4px); box-shadow: 0 10px 22px rgba(0,0,0,.35); }
-        .icon { width:100%; height:110px; object-fit:cover; border-radius:10px; }
-        .name { text-align:center; margin-top:8px; color:#ddd; }
-        .overlay { position:fixed; inset:0; background:rgba(0,0,0,.95); display:flex; }
-        .close { position:absolute; top:16px; right:16px; background:#f6b93b; color:#121212; border:0; width:44px; height:44px; border-radius:50%; font-size:20px; cursor:pointer; }
-        .frame { border:0; width:100vw; height:100vh; }
-        .frameError { margin:auto; text-align:center; }
+        .container {
+          background: #121212;
+          color: white;
+          min-height: 100vh;
+          padding: 20px;
+          font-family: Arial, sans-serif;
+        }
+        .auth-box {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          height: 100vh;
+        }
+        .input {
+          padding: 10px;
+          margin: 5px 0;
+          width: 250px;
+          border-radius: 5px;
+          border: 1px solid #333;
+          background: #1e1e1e;
+          color: white;
+        }
+        .btn {
+          padding: 10px 20px;
+          margin: 5px;
+          background: #f6b93b;
+          border: none;
+          border-radius: 5px;
+          cursor: pointer;
+          color: black;
+          font-weight: bold;
+        }
+        .btn.secondary {
+          background: #3498db;
+          color: white;
+        }
+        .btn.small {
+          padding: 5px 10px;
+          font-size: 14px;
+        }
+        .btn.danger {
+          background: #e74c3c;
+        }
+        .topbar {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 20px;
+        }
+        .title {
+          font-size: 32px;
+          margin: 20px 0;
+          text-align: center;
+          color: #f6b93b;
+        }
+        .games-container {
+          display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+          gap: 20px;
+          justify-items: center;
+        }
+        .game-icon {
+          cursor: pointer;
+          width: 150px;
+          background: #1e1e1e;
+          padding: 10px;
+          border-radius: 10px;
+          transition: 0.3s;
+        }
+        .game-icon:hover {
+          transform: scale(1.05);
+          background: #2c2c2c;
+        }
+        .icon-img {
+          width: 100%;
+          height: 100px;
+          object-fit: cover;
+          border-radius: 8px;
+        }
+        .game-name {
+          margin-top: 10px;
+        }
+        .modal {
+          position: fixed;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background: rgba(0, 0, 0, 0.95);
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          z-index: 1000;
+        }
+        .game-iframe {
+          width: 100%;
+          height: 100%;
+          border: none;
+        }
+        .close-btn {
+          position: absolute;
+          top: 20px;
+          right: 20px;
+          background: #f6b93b;
+          border: none;
+          border-radius: 50%;
+          width: 40px;
+          height: 40px;
+          cursor: pointer;
+          font-weight: bold;
+        }
       `}</style>
     </div>
   );
