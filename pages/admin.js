@@ -1,63 +1,86 @@
-// /pages/admin.js
+// pages/admin.js
 import { useEffect, useState } from "react";
-import { useAuth } from "../context/AuthContext";
-import { db } from "../firebase";
 import { collection, getDocs, doc, updateDoc } from "firebase/firestore";
+import { db } from "../firebase";
+import { useAuth } from "../context/AuthContext";
 
-export default function AdminPage() {
+export default function AdminDashboard() {
   const { user, role, loading } = useAuth();
   const [users, setUsers] = useState([]);
-  const [q, setQ] = useState("");
+  const [search, setSearch] = useState("");
 
   useEffect(() => {
-    async function load() {
-      if (role === "admin") {
-        const snap = await getDocs(collection(db, "users"));
-        setUsers(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
-      }
-    }
-    if (!loading && user) load();
-  }, [user, role, loading]);
+    const fetchUsers = async () => {
+      const snapshot = await getDocs(collection(db, "users"));
+      setUsers(snapshot.docs.map((d) => ({ id: d.id, ...d.data() })));
+    };
+    if (role === "admin") fetchUsers();
+  }, [role]);
 
-  if (loading) return <p style={{ padding: 20 }}>Loading…</p>;
-  if (!user) return <p style={{ padding: 20 }}>Please sign in to view this page.</p>;
-  if (role !== "admin") return <p style={{ padding: 20 }}>🚫 Not authorized.</p>;
-
-  const toggleBan = async (id, banned) => {
-    await updateDoc(doc(db, "users", id), { banned: !banned });
-    setUsers((u) => u.map((x) => (x.id === id ? { ...x, banned: !banned } : x)));
+  const toggleBan = async (id, currentStatus) => {
+    await updateDoc(doc(db, "users", id), { banned: !currentStatus });
+    setUsers((prev) => prev.map((u) => (u.id === id ? { ...u, banned: !currentStatus } : u)));
   };
 
+  if (loading) return <main className="page"><div className="auth-card"><p>Loading…</p></div></main>;
+
+  if (!user || role !== "admin") {
+    return (
+      <main className="page">
+        <div className="auth-card">
+          <p>🚫 You are not authorized to view this page.</p>
+        </div>
+      </main>
+    );
+  }
+
   return (
-    <div style={{ padding: 20 }}>
-      <h1>Admin</h1>
-      <input
-        placeholder="Search email…"
-        value={q}
-        onChange={(e) => setQ(e.target.value)}
-        style={{ padding: 8, margin: "10px 0", width: "100%", maxWidth: 420 }}
-      />
-      <table style={{ width: "100%", borderCollapse: "collapse" }}>
-        <thead>
-          <tr><th>Email</th><th>Role</th><th>Banned</th><th>Action</th></tr>
-        </thead>
-        <tbody>
-          {users
-            .filter((u) => u.email?.toLowerCase().includes(q.toLowerCase()))
-            .map((u) => (
-              <tr key={u.id}>
-                <td>{u.email}</td>
-                <td>{u.role || "user"}</td>
-                <td>{u.banned ? "Yes" : "No"}</td>
-                <td>
-                  <button onClick={() => toggleBan(u.id, u.banned)}>
-                    {u.banned ? "Unban" : "Ban"}
-                  </button>
-                </td>
+    <main className="page">
+      <div className="auth-card" style={{ maxWidth: 900, width: "100%" }}>
+        <h1>👑 Admin Dashboard</h1>
+
+        <input
+          type="text"
+          placeholder="Search users by email…"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="auth-input"
+          style={{ marginBottom: 12 }}
+        />
+
+        <div style={{ overflowX: "auto" }}>
+          <table style={{ width: "100%", borderCollapse: "collapse" }}>
+            <thead>
+              <tr style={{ borderBottom: "2px solid #23263b" }}>
+                <th style={{ textAlign: "left", padding: 8 }}>Email</th>
+                <th style={{ textAlign: "left", padding: 8 }}>Role</th>
+                <th style={{ textAlign: "left", padding: 8 }}>Banned</th>
+                <th style={{ textAlign: "left", padding: 8 }}>Action</th>
               </tr>
-            ))}
-        </tbody>
-      </table>
-    </div>
+            </thead>
+            <tbody>
+              {users
+                .filter((u) => u.email?.toLowerCase().includes(search.toLowerCase()))
+                .map((u) => (
+                  <tr key={u.id} style={{ borderBottom: "1px solid #23263b" }}>
+                    <td style={{ padding: 8 }}>{u.email}</td>
+                    <td style={{ padding: 8 }}>{u.role || "user"}</td>
+                    <td style={{ padding: 8 }}>{u.banned ? "🚫 Yes" : "✅ No"}</td>
+                    <td style={{ padding: 8 }}>
+                      <button
+                        className="btn"
+                        onClick={() => toggleBan(u.id, u.banned)}
+                        style={{ background: u.banned ? "#1e7e34" : "#8b0000" }}
+                      >
+                        {u.banned ? "Unban" : "Ban"}
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </main>
   );
 }
