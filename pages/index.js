@@ -8,7 +8,7 @@ import {
 } from "firebase/auth";
 
 // Your admin email
-const ADMIN_EMAIL = "your-admin-email@example.com";
+const ADMIN_EMAIL = "snoxnukethe@gmail.com";
 
 export default function Home() {
   const [user, setUser] = useState(null);
