@@ -1,19 +1,4 @@
 import { useAuth } from "../context/AuthContext";
-
-export default function HomePage() {
-  const { banned } = useAuth();
-
-  if (banned) {
-    return (
-      <div style={{ padding: "20px", color: "red" }}>
-        🚫 your banned loser. Contact support if you think this is a mistake.
-      </div>
-    );
-  }
-
-  return <div>...rest of your app...</div>;
-}
-// pages/index.js
 import { useEffect, useState } from "react";
 import { auth } from "../firebase";
 import {
@@ -49,11 +34,12 @@ const initialGames = [
 ];
 
 export default function Home() {
+  const { banned } = useAuth(); // ban context
   const [user, setUser] = useState(null);
   const [games, setGames] = useState(initialGames);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentGame, setCurrentGame] = useState("");
-  const [authMode, setAuthMode] = useState("login"); // 'login' | 'signup'
+  const [authMode, setAuthMode] = useState("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
@@ -63,6 +49,14 @@ export default function Home() {
   }, []);
 
   const isAdmin = user?.email === ADMIN_EMAIL;
+
+  if (banned) {
+    return (
+      <div style={{ padding: "20px", color: "red" }}>
+        🚫 You are banned. Contact support if you think this is a mistake.
+      </div>
+    );
+  }
 
   async function handleAuth(e) {
     e.preventDefault();
@@ -87,12 +81,12 @@ export default function Home() {
     setCurrentGame(url);
     setIsModalOpen(true);
   }
+
   function closeModal() {
     setIsModalOpen(false);
     setCurrentGame("");
   }
 
-  // Admin-only: add and delete games (local state only for now)
   function addGame(e) {
     e.preventDefault();
     const form = e.target;
@@ -103,6 +97,7 @@ export default function Home() {
     setGames((g) => [...g, { name, url, icon }]);
     form.reset();
   }
+
   function deleteGame(idx) {
     setGames((g) => g.filter((_, i) => i !== idx));
   }
@@ -133,7 +128,11 @@ export default function Home() {
           </form>
           <p className="muted">
             {authMode === "signup" ? "Have an account?" : "New here?"}{" "}
-            <a onClick={() => setAuthMode(authMode === "signup" ? "login" : "signup")}>
+            <a
+              onClick={() =>
+                setAuthMode(authMode === "signup" ? "login" : "signup")
+              }
+            >
               {authMode === "signup" ? "Log in" : "Create one"}
             </a>
           </p>
@@ -145,7 +144,9 @@ export default function Home() {
             <div className="user-row">
               <span className="badge">{isAdmin ? "Admin" : "User"}</span>
               <span className="email">{user.email}</span>
-              <button onClick={handleSignOut} className="signout">Sign out</button>
+              <button onClick={handleSignOut} className="signout">
+                Sign out
+              </button>
             </div>
           </header>
 
@@ -160,7 +161,11 @@ export default function Home() {
 
           <div className="grid">
             {games.map((game, idx) => (
-              <div className="card" key={game.name} onClick={() => openGame(game.url)}>
+              <div
+                className="card"
+                key={game.name}
+                onClick={() => openGame(game.url)}
+              >
                 <img src={game.icon} alt={game.name} className="icon" />
                 <div className="name-row">
                   <p className="name">{game.name}</p>
@@ -185,11 +190,18 @@ export default function Home() {
           {isModalOpen && (
             <div className="modal" onClick={closeModal}>
               <iframe src={currentGame} className="iframe" />
-              <button onClick={closeModal} className="close">X</button>
+              <button onClick={closeModal} className="close">
+                X
+              </button>
             </div>
           )}
         </div>
       )}
+
+      {/* Keep your same <style jsx> block here */}
+    </div>
+  );
+}
 
       <style jsx>{`
         .container {
