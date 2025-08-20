@@ -1,4 +1,5 @@
 // pages/login.js
+import { signUp } from "../lib/auth";
 import { useState } from "react";
 import { auth } from "../firebase";
 import {
@@ -15,8 +16,8 @@ export default function LoginPage() {
 
   const handleSignup = async () => {
     try {
-      const res = await createUserWithEmailAndPassword(auth, email, password);
-      setUser(res.user);
+      const res = await await signUp(email, password);
+
     } catch (err) {
       setError(err.message);
     }
