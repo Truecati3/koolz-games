@@ -14,7 +14,7 @@ import {
   doc
 } from "firebase/firestore";
 
-const ADMIN_EMAIL = "youradminemail@example.com"; // 👈 change this to your admin email
+const ADMIN_EMAIL = "snoxnukethe@gmail.com"; // 👈 change this to your admin email
 
 export default function Home() {
   const [user, setUser] = useState(null);
