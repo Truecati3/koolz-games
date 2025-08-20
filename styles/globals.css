@@ -1,64 +1,128 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+/* styles/globals.css */
 
-/* ====== Base Reset ====== */
-html,
+/* Reset-ish */
+* { box-sizing: border-box; }
+html, body, #__next { height: 100%; }
 body {
-  @apply bg-gray-50 text-gray-900 antialiased;
   margin: 0;
-  padding: 0;
-  height: 100%;
-  font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-    "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji",
-    "Segoe UI Symbol", "Noto Color Emoji";
+  background: #0f1120;      /* deep navy */
+  color: #e8eaf6;
+  font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
 }
 
-/* ====== Global Headings ====== */
-h1 {
-  @apply text-3xl font-bold mb-4;
-}
-h2 {
-  @apply text-2xl font-semibold mb-3;
-}
-h3 {
-  @apply text-xl font-medium mb-2;
+/* Page containers */
+.page {
+  min-height: 100%;
+  display: grid;
+  place-items: center;
+  padding: 24px;
 }
 
-/* ====== Links ====== */
-a {
-  @apply text-blue-600 hover:text-blue-800 underline;
+/* Auth card (Mothership-inspired) */
+.auth-card {
+  width: 100%;
+  max-width: 440px;
+  background: #14172a;
+  border: 1px solid #23263b;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.45), inset 0 0 0 1px rgba(255,255,255,0.02);
 }
 
-/* ====== Buttons ====== */
+.auth-card h1 {
+  margin: 0 0 14px;
+  font-size: 28px;
+  letter-spacing: 0.3px;
+  color: #f0f3ff;
+}
+
+.auth-form {
+  display: grid;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.auth-form input {
+  background: #0f1324;
+  color: #fff;
+  border: 1px solid #242842;
+  border-radius: 10px;
+  padding: 10px 12px;
+  outline: none;
+}
+.auth-form input:focus {
+  border-color: #6ee7ff;
+  box-shadow: 0 0 0 3px rgba(110,231,255,0.15);
+}
+
+/* Buttons */
 .btn {
-  @apply px-4 py-2 rounded-lg font-medium transition-colors duration-200;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  padding: 10px 12px;
+  border: 1px solid #2a2e4a;
+  background: #161a31;
+  color: #e7ecff;
+  font-weight: 600;
+  cursor: pointer;
 }
-.btn-primary {
-  @apply bg-blue-600 text-white hover:bg-blue-700;
+.btn:hover { filter: brightness(1.05); }
+.btn.primary {
+  background: linear-gradient(180deg, #ffd166, #f6b93b);
+  color: #231903;
+  border: none;
 }
-.btn-secondary {
-  @apply bg-gray-200 text-gray-900 hover:bg-gray-300;
+.btn.outline {
+  background: transparent;
 }
 
-/* ====== Layout Helpers ====== */
-.container {
-  @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+/* Links + text */
+.muted {
+  color: #a7b0d4;
+  margin: 12px 0 0;
+  font-size: 14px;
 }
+a { color: #e7ecff; text-decoration: underline; cursor: pointer; }
+.error { color: #ff7b7b; margin-top: 8px; }
 
+/* Dashboard */
+.wrap { width: 100%; max-width: 1100px; }
+.dash-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 20px;
+}
+.brand { color: #ffd166; margin: 0; font-size: 28px; }
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 18px;
+}
 .card {
-  @apply bg-white rounded-xl shadow-md p-6;
+  background: #14172a;
+  border: 1px solid #23263b;
+  border-radius: 14px;
+  padding: 10px;
+  cursor: pointer;
+  transition: transform .15s ease, box-shadow .18s ease;
+  display: grid;
+  gap: 8px;
 }
+.card:hover { transform: translateY(-3px); box-shadow: 0 10px 24px rgba(0,0,0,.35); }
+.card img { width: 100%; height: 110px; object-fit: cover; border-radius: 10px; }
+.card span { color: #e7ecff; font-weight: 600; text-align: left; }
 
-/* ====== Forms ====== */
-input, textarea, select {
-  @apply border border-gray-300 rounded-md px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-500;
+/* Modal */
+.modal {
+  position: fixed; inset: 0; background: rgba(3,6,12,.92);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 50;
 }
-
-/* ====== Navbar/Footer (optional) ====== */
-.navbar {
-  @apply bg-white shadow sticky top-0 z-50;
-}
-.nav-link {
-  @apply px-3 py-2 text-gray-700 hover:text-blue-600 transition-colors;
+.frame { width: min(1200px, 95vw); height: min(700px, 85vh); border: 0; border-radius: 12px; }
+.close {
+  position: absolute; top: 18px; right: 18px;
+  width: 44px; height: 44px; border-radius: 999px; border: 0;
+  background: #ffd166; color: #1f1503; font-size: 22px; font-weight: 800; cursor: pointer;
 }
